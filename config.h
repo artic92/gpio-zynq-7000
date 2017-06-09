@@ -1,0 +1,23 @@
+/*
+ * config.h
+ *
+ *  Created on: 08 giu 2017
+ *      Author: antonio
+ */
+
+#ifndef SRC_CONFIG_H_
+#define SRC_CONFIG_H_
+
+#include "xparameters.h"
+
+#define GPIO_LED_BASEADDR 		XPAR_GPGPIO_1_S00_AXI_BASEADDR
+#define GPIO_SWITCH_BASEADDR 	XPAR_GPGPIO_0_S00_AXI_BASEADDR
+#define GPIO_BTN_BASEADDR		XPAR_GPGP
+
+#define GIC_ID 					XPAR_PS7_SCUGIC_0_DEVICE_ID
+
+#define GPIO_IRQn 				XPAR_FABRIC_GPGPIO_0_IRQ_INTR
+#define BTN_IRQn				XPAR_FABRIC_GPGPIO_2_IRQ_INTR
+
+
+#endif /* SRC_CONFIG_H_ */
