@@ -36,11 +36,11 @@
  */
 
 #include <stdio.h>
-#include "gpio_se.h"
 #include "led_gpio.h"
 #include "switch_gpio.h"
 #include "config.h"
 #include "xscugic.h"
+#include "gpio.h"
 
 XScuGic gic_inst;
 
@@ -99,4 +99,3 @@ void gpio_IRQHandler(void* data)
 	led_toggle(pending_pins);
 	gpio_clear_int(GPIO_SWITCH_BASEADDR, pending_pins);
 }
-

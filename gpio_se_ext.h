@@ -8,7 +8,7 @@
 #ifndef SRC_GPIO_SE_EXT_H_
 #define SRC_GPIO_SE_EXT_H_
 
-#include "gpio_se.h"
+#include "gpio_ll.h"
 
 /**
  * Questa funzione abilita le interruzioni per i pin specificati
