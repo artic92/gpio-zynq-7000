@@ -41,7 +41,7 @@
 * 		- XST_SUCCESS se l'inizializazzione è andata a buon fine.
 *     - XST_FAILURE se l'inizializazzione non è andata a buon fine.
 */
-int myGpio_init(myGpio_t *instance_ptr, myGpio_config *config_ptr)
+int myGpio_init(myGpio_t* instance_ptr, myGpio_config* config_ptr)
 {
   int status = XST_FAILURE;
   instance_ptr->isReady = COMPONENT_NOT_READY;
@@ -72,7 +72,7 @@ int myGpio_init(myGpio_t *instance_ptr, myGpio_config *config_ptr)
 * @return	None.
 *
 */
-void myGpio_setDataDirection(myGpio_t *instance_ptr, uint32_t gpio_pin_mask, gpio_mode direction)
+void myGpio_setDataDirection(myGpio_t* instance_ptr, uint32_t gpio_pin_mask, gpio_mode direction)
 {
   // Verifica che il puntatore alla struttura dati non sia nullo
   assert(instance_ptr != NULL);
@@ -96,7 +96,7 @@ void myGpio_setDataDirection(myGpio_t *instance_ptr, uint32_t gpio_pin_mask, gpi
 *   ad 1 sono input.
 *
 */
-uint32_t myGpio_getDataDirection(myGpio_t *instance_ptr, uint32_t gpio_pin_mask)
+uint32_t myGpio_getDataDirection(myGpio_t* instance_ptr, uint32_t gpio_pin_mask)
 {
   // Verifica che il puntatore alla struttura dati non sia nullo
   assert(instance_ptr != NULL);
@@ -114,7 +114,7 @@ uint32_t myGpio_getDataDirection(myGpio_t *instance_ptr, uint32_t gpio_pin_mask)
 * @return	Contenuto del registro di dato della periferica.
 *
 */
-uint32_t myGpio_read_value(myGpio_t *instance_ptr)
+uint32_t myGpio_read_value(myGpio_t* instance_ptr)
 {
   // Verifica che il puntatore alla struttura dati non sia nullo
   assert(instance_ptr != NULL);
@@ -133,7 +133,7 @@ uint32_t myGpio_read_value(myGpio_t *instance_ptr)
 * @return	None.
 *
 */
-void myGpio_write_value(myGpio_t *instance_ptr, uint32_t data)
+void myGpio_write_value(myGpio_t* instance_ptr, uint32_t data)
 {
   // Verifica che il puntatore alla struttura dati non sia nullo
   assert(instance_ptr != NULL);
@@ -141,6 +141,27 @@ void myGpio_write_value(myGpio_t *instance_ptr, uint32_t data)
   assert(instance_ptr->isReady == COMPONENT_READY);
 
   gpio_write_mask(instance_ptr->base_address, GPIO_DOUT_OFFSET, data);
+}
+
+/**
+* Commuta lo stato di uno o più bit nel registro specificato.
+*
+* @param	instance_ptr è un puntatore ad un'istanza di myGpio_t.
+* @param  register_offset è lo spiazzamento necessario a puntare al registro richiesto.
+* @param  mask è la maschera di bit che indica i bit da commutare. I bit settati a 1
+*   sono commutati mentre bit settati a 0 mantengono lo stato precedente.
+*
+* @return	None.
+*
+*/
+void myGpio_toggle(myGpio_t* instance_ptr, uint32_t register_offset, uint32_t mask)
+{
+  // Verifica che il puntatore alla struttura dati non sia nullo
+  assert(instance_ptr != NULL);
+  // Verifica che il dispositivo è pronto e funzionante
+  assert(instance_ptr->isReady == COMPONENT_READY);
+
+  gpio_toggle_bit(instance_ptr->base_address, register_offset, mask);
 }
 
 /**
@@ -154,7 +175,7 @@ void myGpio_write_value(myGpio_t *instance_ptr, uint32_t data)
 * @return	None.
 *
 */
-void myGpio_interruptEnable(myGpio_t *instance_ptr, uint32_t mask)
+void myGpio_interruptEnable(myGpio_t* instance_ptr, uint32_t mask)
 {
   // Verifica che il puntatore alla struttura dati non sia nullo
   assert(instance_ptr != NULL);
@@ -177,7 +198,7 @@ void myGpio_interruptEnable(myGpio_t *instance_ptr, uint32_t mask)
 * @return	None.
 *
 */
-void myGpio_interruptDisable(myGpio_t *instance_ptr, uint32_t mask)
+void myGpio_interruptDisable(myGpio_t* instance_ptr, uint32_t mask)
 {
   // Verifica che il puntatore alla struttura dati non sia nullo
   assert(instance_ptr != NULL);
@@ -201,7 +222,7 @@ void myGpio_interruptDisable(myGpio_t *instance_ptr, uint32_t mask)
 * @details Questa funzione dovrebbe essere chiamata prima che il
 *   software abbia servito l'interruzione.
 */
-void myGpio_interruptClear(myGpio_t *instance_ptr, uint32_t mask)
+void myGpio_interruptClear(myGpio_t* instance_ptr, uint32_t mask)
 {
   // Verifica che il puntatore alla struttura dati non sia nullo
   assert(instance_ptr != NULL);
@@ -222,7 +243,7 @@ void myGpio_interruptClear(myGpio_t *instance_ptr, uint32_t mask)
 * @return	Contenuto del registro di interrupt enable.
 *
 */
-uint32_t myGpio_interruptGetEnabled(myGpio_t *instance_ptr)
+uint32_t myGpio_interruptGetEnabled(myGpio_t* instance_ptr)
 {
   // Verifica che il puntatore alla struttura dati non sia nullo
   assert(instance_ptr != NULL);
@@ -249,7 +270,7 @@ uint32_t myGpio_interruptGetEnabled(myGpio_t *instance_ptr)
 * fatto che l'interruzione per quel pin sia stata abilitata o meno.
 *
 *****************************************************************************/
-uint32_t myGpio_interruptGetStatus(myGpio_t *instance_ptr)
+uint32_t myGpio_interruptGetStatus(myGpio_t* instance_ptr)
 {
   // Verifica che il puntatore alla struttura dati non sia nullo
   assert(instance_ptr != NULL);

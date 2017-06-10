@@ -75,29 +75,29 @@ typedef struct {
 /**
  * Funzione di inizializazzione
  */
-int myGpio_init(myGpio_t *instance_ptr, myGpio_config *config_ptr);
+int myGpio_init(myGpio_t* instance_ptr, myGpio_config *config_ptr);
 
 /**
  * Funzioni di configurazione
  */
-void myGpio_setDataDirection(myGpio_t *instance_ptr, uint32_t gpio_pin_mask, gpio_mode direction);
-uint32_t myGpio_getDataDirection(myGpio_t *instance_ptr, uint32_t gpio_pin_mask);
+void myGpio_setDataDirection(myGpio_t* instance_ptr, uint32_t gpio_pin_mask, gpio_mode direction);
+uint32_t myGpio_getDataDirection(myGpio_t* instance_ptr, uint32_t gpio_pin_mask);
 
 /**
  * Funzioni per le operazioni di I/O
  */
-uint32_t myGpio_read_value(myGpio_t *instance_ptr);
-void myGpio_write_value(myGpio_t *instance_ptr, uint32_t data);
-//TODO FUNZIONE DI toggle
+uint32_t myGpio_read_value(myGpio_t* instance_ptr);
+void myGpio_write_value(myGpio_t* instance_ptr, uint32_t data);
+void myGpio_toggle(myGpio_t* instance_ptr, uint32_t register_offset, uint32_t mask);
 
 /**
  * Funzioni per la gestione delle interruzioni
  */
-void myGpio_interruptEnable(myGpio_t *instance_ptr, uint32_t mask);
-void myGpio_interruptDisable(myGpio_t *instance_ptr, uint32_t mask);
-void myGpio_interruptClear(myGpio_t *instance_ptr, uint32_t mask);
-uint32_t myGpio_interruptGetEnabled(myGpio_t *instance_ptr);
-uint32_t myGpio_interruptGetStatus(myGpio_t *instance_ptr);
+void myGpio_interruptEnable(myGpio_t* instance_ptr, uint32_t mask);
+void myGpio_interruptDisable(myGpio_t* instance_ptr, uint32_t mask);
+void myGpio_interruptClear(myGpio_t* instance_ptr, uint32_t mask);
+uint32_t myGpio_interruptGetEnabled(myGpio_t* instance_ptr);
+uint32_t myGpio_interruptGetStatus(myGpio_t* instance_ptr);
 
 /**
  * Funzione di testing

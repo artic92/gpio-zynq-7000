@@ -40,4 +40,3 @@ uint32_t gpio_get_pending(uint32_t* gpio_base_ptr, uint32_t mask)
 {
 	return gpio_read_mask(gpio_base_ptr, GPIO_INT_PENDING) & mask;
 }
-
