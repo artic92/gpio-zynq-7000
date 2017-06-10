@@ -24,9 +24,6 @@
 #ifndef GPIO_DEFS_H
 #define GPIO_DEFS_H
 
-/***************************** Include Files ********************************/
-#include "gpio.h"
-
 // Enumerazione che indica la presenza o meno al supporto delle interruzioni
 typedef enum
 {
