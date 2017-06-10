@@ -14,8 +14,6 @@
 * if not, write to the Free Software Foundation, Inc.,
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
-* @addtogroup gpio
-* @{
 * @details
 *
 * Questo file header isola le uniche definizioni dipendenti dal design hardware
@@ -38,4 +36,3 @@
 #define BTN_IRQn				      XPAR_FABRIC_GPIO_2_IRQ_INTR
 
 #endif /* SRC_CONFIG_H_ */
-/** @} */

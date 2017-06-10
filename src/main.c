@@ -31,8 +31,6 @@
 * in advertising or otherwise to promote the sale, use or other dealings in
 * this Software without prior written authorization from Xilinx.
 *
-* @addtogroup gpio
-* @{
 * @details
 *
 * Applicazione di testing per le funzionalità della periferica. Questa
@@ -119,4 +117,3 @@ void gpio_IRQHandler(void* data)
 
 	myGpio_interruptClear(&gpio_switch, pending_int);
 }
-/** @} */
