@@ -27,7 +27,6 @@
 
 /***************************** Include Files *********************************/
 #include <inttypes.h>
-#include "gpio_se_ext.h"
 
 /************************** Constant Definitions *****************************/
 /** @name Registri
