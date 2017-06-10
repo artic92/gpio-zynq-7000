@@ -1,5 +1,8 @@
-/******************************************************************************
-*
+/**
+* @file gpio.c
+* @author: Antonio Riccio
+* @email antonio.riccio.27@gmail.com
+* @copyright
 * Copyright (C) 2009 - 2014 Xilinx, Inc.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,21 +31,28 @@
 * in advertising or otherwise to promote the sale, use or other dealings in
 * this Software without prior written authorization from Xilinx.
 *
-******************************************************************************/
+* @addtogroup gpio
+* @{
+* @details
+*
+* Applicazione di testing per le funzionalità della periferica. Questa
+* Applicazione fa uso del meccanismo delle interruzioni per implementare
+* un contatore. Ogni volta che viene alzato uno switch o premuto un bottone
+* il contatore viene incrementato di un valore pari al valore in binario
+* del bottone o dello switch premuto. L'incremento del conteggio è effettuato
+* nella ISR opportunamente definita.
+*
+*/
 
-/*
- * helloworld.c: simple test application
- *
- */
-
-#include <stdio.h>
-#include "led_gpio.h"
-#include "switch_gpio.h"
-#include "config.h"
 #include "xscugic.h"
 #include "gpio.h"
+#include "config.h"
 
 XScuGic gic_inst;
+myGpio_t gpio_led;
+myGpio_t gpio_switch;
+
+static int led_data;
 
 int setup(void);
 void loop(void);
@@ -50,7 +60,6 @@ void gpio_IRQHandler(void*);
 
 int main()
 {
-
     setup();
     for(;;) loop();
 
@@ -59,43 +68,55 @@ int main()
 
 int setup()
 {
-	XScuGic_Config *gic_conf;
+	XScuGic_Config* gic_conf;
+  myGpio_config gpio_config;
 	int status;
 
-	led_enable(LED0 | LED1 | LED2 | LED3);
-	switch_enable(SWT0 | SWT1 | SWT2 | SWT3);
+  // inizializzazione delle periferiche GPIO
+  gpio_config.base_address = (uint32_t*)GPIO_LED_BASEADDR;
+  gpio_config.interrupt_enabled = INT_DISABLED;
+  myGpio_init(&gpio_led, &gpio_config);
 
-//	Xil_ExceptionInit();
+  gpio_config.base_address = (uint32_t*)GPIO_SWITCH_BASEADDR;
+  gpio_config.interrupt_enabled = INT_ENABLED;
+  myGpio_init(&gpio_switch, &gpio_config);
 
+  myGpio_setDataDirection(&gpio_led, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, GPIO_WRITE);
+  myGpio_setDataDirection(&gpio_switch, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, GPIO_READ);
+
+  // Configurazione del GIC
 	gic_conf = XScuGic_LookupConfig(GIC_ID);
 	status = XScuGic_CfgInitialize(&gic_inst, gic_conf, gic_conf->CpuBaseAddress);
 	if(status != XST_SUCCESS)
 		return status;
 
+  // Registrazione presso la PS dell'interrupt handler del GIC
 	Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler)XScuGic_InterruptHandler, (void*)&gic_inst);
 	Xil_ExceptionEnable();
 
-	status = XScuGic_Connect(&gic_inst, GPIO_IRQn, (Xil_InterruptHandler)gpio_IRQHandler, (void*)&gic_inst);
+  // Registrazione presso il GIC della routine di gestione dell'interruzione per la periferica GPIO
+	status = XScuGic_Connect(&gic_inst, SWT_IRQn, (Xil_InterruptHandler)gpio_IRQHandler, (void*)&gic_inst);
 	if(status != XST_SUCCESS)
 		return status;
 
-	gpio_int_enable(GPIO_SWITCH_BASEADDR, SWT0 | SWT1 | SWT2 | SWT3);
-	XScuGic_Enable(&gic_inst, GPIO_IRQn);
+  // Abilitazione delle interruzioni presso la periferica e presso il GIC
+	myGpio_interruptEnable(&gpio_switch, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3);
+  myGpio_interruptClear(&gpio_switch, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3);
+	XScuGic_Enable(&gic_inst, SWT_IRQn);
 	return XST_SUCCESS;
 }
 
-void loop()
-{
-//	led_on(switch_get_state(SWT0 | SWT1 | SWT2 | SWT3));
-//	led_off(~switch_get_state(SWT0 | SWT1 | SWT2 | SWT3));
-}
-
+void loop(){}
 
 void gpio_IRQHandler(void* data)
 {
-	// Questa istruzione viene messa da parte per poter considerare lo stato delle interruzioni nell'istante di inizio della ISR
-	// Se viene messa più volte, potrebbe accadere che l'interruzione relativa ad un altro pin viene servita qnd invece nn lo è
-	uint32_t pending_pins = gpio_get_pending(GPIO_SWITCH_BASEADDR, SWT0 | SWT1 | SWT2 | SWT3);
-	led_toggle(pending_pins);
-	gpio_clear_int(GPIO_SWITCH_BASEADDR, pending_pins);
+	// Ottenimento dello stato dei pin all'inizio dell'IRQ
+	uint32_t pending_int = myGpio_interruptGetStatus(&gpio_switch);
+
+  uint32_t swt_data = myGpio_read_value(&gpio_switch);
+  led_data = led_data + swt_data;
+  myGpio_write_value(&gpio_led, led_data);
+
+	myGpio_interruptClear(&gpio_switch, pending_int);
 }
+/** @} */
