@@ -17,5 +17,5 @@ void switch_disable(uint32_t swts_to_disable){
 }
 
 uint32_t switch_get_state(uint32_t mask){
-	return gpio_read_mask(GPIO_SWITCH_BASEADDR, GPIO_DIN_OFFSET);
+	return gpio_read_mask(GPIO_SWITCH_BASEADDR, GPIO_DIN_OFFSET) & mask;
 }
