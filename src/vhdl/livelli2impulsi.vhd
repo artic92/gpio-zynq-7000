@@ -17,10 +17,10 @@
 -- Additional Comments:
 --
 ----------------------------------------------------------------------------------
-----------------------------------------------------------
---! @file livelli2impulsi
---! @brief Automa a stati per la generazione di un impulso
-----------------------------------------------------------
+--! @file livelli2impulsi.vhd
+--! @author Antonio Riccio
+--! @brief Automa a stati finiti per la generazione di un impulso
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
@@ -39,6 +39,7 @@ entity livelli2impulsi is
            output : out  STD_LOGIC);
 end livelli2impulsi;
 
+--! Architettura nel dominio comportamentale per livelli2impulsi
 architecture Behavioral of livelli2impulsi is
 
 signal output_sig : std_logic := '0';

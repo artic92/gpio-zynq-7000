@@ -17,10 +17,10 @@
 -- Additional Comments:
 --
 ----------------------------------------------------------------------------------
------------------------------------------------------
 --! @file gpio_array.vhd
---! @brief Periferica GPIO a parallelismo qualsiasi
-----------------------------------------------------
+--! @author Antonio Riccio
+--! @brief Periferica GPIO a parallelismo configurabile
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
@@ -44,7 +44,7 @@ end gpio_array;
 --! Architettura nel dominio strutturale per gpio_array
 architecture Structural of gpio_array is
 
---! Dichiarazione del componente gpio definito in @ref gpio
+--! Dichiarazione del componente gpio definito in @ref GPIO
 component gpio_pad is
     Port ( pad_out : in STD_LOGIC;
            pad_en : in STD_LOGIC;

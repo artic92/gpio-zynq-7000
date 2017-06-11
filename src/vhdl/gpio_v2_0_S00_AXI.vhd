@@ -1,5 +1,6 @@
 --------------------------------------------------------
---! @file gpio_v2_0_S00_AXI
+--! @file gpio_v2_0_S00_AXI.vhd
+--! @author Antonio Riccio
 --! @brief Interfaccia AXI4-Lite per la periferica GPIO
 --------------------------------------------------------
 library ieee;

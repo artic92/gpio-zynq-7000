@@ -17,10 +17,9 @@
 -- Additional Comments:
 --
 ----------------------------------------------------------------------------------
-----------------------------------------------------
---! @file irq_generation
---! @brief Logica per la generazione di interruzioni
-----------------------------------------------------
+--! @file irq_generation.vhd
+--! @author Antonio Riccio
+--! @brief Logica di gestione delle interruzioni
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
@@ -47,10 +46,10 @@ entity irq_generation is
            irq : out STD_LOGIC);                                  --! segnale collegato alla PS per la segnalazione di un evento interrompente
 end irq_generation;
 
---! Architettura nel dominio strutturale per irq_generation
+--! @brief Architettura nel dominio strutturale per irq_generation
 architecture Structural of irq_generation is
 
---! Il componente seguente genera un segnale impulsivo a partire da un segnale a livelli.
+--! @details Il componente seguente genera un segnale impulsivo a partire da un segnale a livelli.
 --! Questo è necessario per consentire al latch di catturare il segnale
 --! in ingresso solo nel momento in cui si verifica la richiesta di interruzione
 --! da parte della fonte interrompente.

@@ -17,11 +17,11 @@
 -- Additional Comments:
 --
 ----------------------------------------------------------------------------------
-
----------------------------------------------------
 --! @file gpio.vhd
+--! @author Antonio Riccio
 --! @brief Periferica GPIO a parallelismo unitario
----------------------------------------------------
+--! @anchor GPIO
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
