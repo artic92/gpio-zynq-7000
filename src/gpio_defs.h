@@ -1,9 +1,9 @@
 /**
 * @file gpio_defs.h
+* @brief Definizioni utili per la gestione della periferica.
 * @author: Antonio Riccio
-* @email antonio.riccio.27@gmail.com
 * @copyright
-* Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>
+* Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>.
 * This program is free software; you can redistribute it and/or modify it under the terms
 * of the GNU General Public License as published by the
 * Free Software Foundation; either version 3 of the License, or any later version.
@@ -14,38 +14,58 @@
 * if not, write to the Free Software Foundation, Inc.,
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
-* @addtogroup gpio
+* @addtogroup API_C
 * @{
-*
-* Definizioni utili per la gestione della periferica.
-*
 */
 /*****************************************************************************/
 #ifndef GPIO_DEFS_H
 #define GPIO_DEFS_H
 
-// Enumerazione che indica la presenza o meno al supporto delle interruzioni
+/**
+ * @brief Enumerazione che indica la presenza o meno al supporto delle interruzioni.
+ *
+ * Questa enumerazione deve essere utilizzata nella fase di configurazione della periferica
+ * scegliendo in base alle capacità dell'hardware l'opzione appropriata.
+ * @see myGpio_init()
+ */
 typedef enum
 {
-  INT_ENABLED,
-  INT_DISABLED
+  INT_ENABLED,          /**< Supporto alle interruzioni presente nell'hardware */
+  INT_DISABLED          /**< Supporto alle interruzioni non presente nell'hardware */
 } interrupt_support;
 
-// Enumerazione che indica se il dispositivo è configurato e pronto o meno
+/**
+ * @brief Enumerazione che indica se il dispositivo è configurato e pronto.
+ *
+ * Questa enumerazione viene utilizzata dalla funzione init per indicare l'esito
+ * dell'operazione di configurazione. Viene utiilizata dagli assert per eseguire
+ * controlli preliminari prima di effettuare operazioni sulla periferica.
+ */
 typedef enum
 {
-  COMPONENT_READY,
-  COMPONENT_NOT_READY
+  COMPONENT_READY,      /**< Componente pronto e configurato correttamente */
+  COMPONENT_NOT_READY   /**< Componente non pronto e non configurato correttamente */
 } enum_ready;
 
-// Enumerazione necessaria per la configurazione dei pin
+/**
+ * @brief Enumerazione utile alla configurazione dei pin.
+ *
+ * Questa enumerazione deve essere utilizzata
+ * per indicare la direzione di input/output dei pin specificati.
+ * @see myGpio_setDataDirection()
+ */
 typedef enum
 {
-  GPIO_READ,
-  GPIO_WRITE
+  GPIO_READ,            /**< Configurazione del pin in lettura */
+  GPIO_WRITE            /**< Configurazione del pin in scrittura */
 } gpio_mode;
 
-// Definizione delle maschere relative ai pin della periferica
+/************************** Constant Definitions *****************************/
+/**
+ * @name Definizioni
+ * @brief Maschere relative ai pin della periferica.
+ * @{
+ */
 #define GPIO_PIN_0  (uint32_t) 1 << 0
 #define GPIO_PIN_1  (uint32_t) 1 << 1
 #define GPIO_PIN_2  (uint32_t) 1 << 2
@@ -78,6 +98,7 @@ typedef enum
 #define GPIO_PIN_29 (uint32_t) 1 << 29
 #define GPIO_PIN_30 (uint32_t) 1 << 30
 #define GPIO_PIN_31 (uint32_t) 1 << 31
+/* @} */
 
 #endif /* SRC_GPIO_DEFS_H */
 /** @} */

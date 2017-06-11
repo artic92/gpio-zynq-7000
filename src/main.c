@@ -1,7 +1,7 @@
 /**
-* @file gpio.c
+* @file main.c
+* @brief Applicazione dimostrativa
 * @author: Antonio Riccio
-* @email antonio.riccio.27@gmail.com
 * @copyright
 * Copyright (C) 2009 - 2014 Xilinx, Inc.  All rights reserved.
 *
@@ -31,15 +31,6 @@
 * in advertising or otherwise to promote the sale, use or other dealings in
 * this Software without prior written authorization from Xilinx.
 *
-* @details
-*
-* Applicazione di testing per le funzionalità della periferica. Questa
-* Applicazione fa uso del meccanismo delle interruzioni per implementare
-* un contatore. Ogni volta che viene alzato uno switch o premuto un bottone
-* il contatore viene incrementato di un valore pari al valore in binario
-* del bottone o dello switch premuto. L'incremento del conteggio è effettuato
-* nella ISR opportunamente definita.
-*
 */
 
 #include "xscugic.h"
@@ -56,6 +47,15 @@ int setup(void);
 void loop(void);
 void gpio_IRQHandler(void*);
 
+/**
+* @details
+* Applicazione di testing per le funzionalità della periferica. Questa
+* Applicazione fa uso del meccanismo delle interruzioni per implementare
+* un contatore. Ogni volta che viene alzato uno switch
+* il contatore viene incrementato di un valore pari al valore in binario
+* del bottone o dello switch premuto. L'incremento del conteggio è effettuato
+* nella ISR opportunamente definita.
+*/
 int main()
 {
     setup();
@@ -64,6 +64,9 @@ int main()
     return 0;
 }
 
+/**
+* @brief Setup dell'hardware.
+*/
 int setup()
 {
 	XScuGic_Config* gic_conf;
@@ -106,6 +109,9 @@ int setup()
 
 void loop(){}
 
+/**
+* @brief ISR per il servizio dell'interruzione.
+*/
 void gpio_IRQHandler(void* data)
 {
 	// Ottenimento dello stato dei pin all'inizio dell'IRQ

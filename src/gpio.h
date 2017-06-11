@@ -1,9 +1,10 @@
 /**
 * @file gpio.h
+* @brief Definizioni di funzioni per il driver della periferica GPIO.
+* @anchor GPIO
 * @author: Antonio Riccio
-* @email antonio.riccio.27@gmail.com
 * @copyright
-* Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>
+* Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>.
 * This program is free software; you can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the
 * Free Software Foundation; either version 3 of the License, or any later version.
@@ -14,7 +15,7 @@
 * write to the Free Software Foundation, Inc.,
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
-* @addtogroup gpio
+* @addtogroup API_C
 * @{
 * @details
 *
@@ -53,54 +54,68 @@
 
 /**************************** Type Definitions ******************************/
 /**
- * Questa struttura contiene informazioni di configurazione.
+ * @brief Struttura dati per la configurazione del dispositivo.
+ *
+ * L'utilizzatore deve allocare una struttura di questo tipo per poter configurare
+ * il dispositivo nella fase di inizializzazione.
+ * @see myGpio_init()
+ *
  */
 typedef struct {
-	uint32_t* base_address;	   							/* Indirizzo base della periferica */
-	interrupt_support interrupt_enabled;	  /* Interruzioni presenti in hw */
+	uint32_t* base_address;	   							///< Indirizzo base della periferica
+	interrupt interrupt_support;	  ///< Se è presente il supporto alle interruzioni
 } myGpio_config;
 
 /**
- * Struttura dati del GPIO driver. L'utilizzatore deve allocare una struttura di
- * questo tipo per ogni periferica GPIO che intende gestire. Questo poichè le
- * funzioni nell'API richiedono un puntatore ad una variabile di questo tipo.
+ * @brief Struttura dati del GPIO driver.
+ *
+ * L'utilizzatore deve allocare una struttura di questo tipo per ogni
+ * periferica GPIO che intende gestire. Questo poichè le funzioni nell'API
+ * richiedono un puntatore ad una variabile di questo tipo.
  */
 typedef struct {
-	uint32_t* base_address;	 								/* Indirizzo base della periferica */
-	enum_ready isReady;		         								/* periferica inizializzata e pronta */
-	interrupt_support interrupt_enabled;	 	/* Interruzioni presenti in hw */
+	uint32_t* base_address;	 								///< Indirizzo base della periferica
+	enum_ready isReady;		         					///< periferica inizializzata e pronta
+	interrupt interrupt_support;	 	///< Se è presente il supporto alle interruzioni
 } myGpio_t;
 
 /************************** Function Prototypes *****************************/
 /**
- * Funzione di inizializazzione
+ * @name Funzioni di inizializazzione
  */
 int myGpio_init(myGpio_t* instance_ptr, myGpio_config *config_ptr);
 
 /**
- * Funzioni di configurazione
+ * @name Funzioni di configurazione
+ * @{
  */
 void myGpio_setDataDirection(myGpio_t* instance_ptr, uint32_t gpio_pin_mask, gpio_mode direction);
 uint32_t myGpio_getDataDirection(myGpio_t* instance_ptr, uint32_t gpio_pin_mask);
+/* @} */
 
 /**
- * Funzioni per le operazioni di I/O
+ * @name Funzioni per le operazioni di I/O
+ * @{
  */
 uint32_t myGpio_read_value(myGpio_t* instance_ptr);
 void myGpio_write_value(myGpio_t* instance_ptr, uint32_t data);
 void myGpio_toggle(myGpio_t* instance_ptr, uint32_t register_offset, uint32_t mask);
+/* @} */
 
 /**
- * Funzioni per la gestione delle interruzioni
+ * @name Funzioni per la gestione delle interruzioni
+ * @{
  */
 void myGpio_interruptEnable(myGpio_t* instance_ptr, uint32_t mask);
 void myGpio_interruptDisable(myGpio_t* instance_ptr, uint32_t mask);
 void myGpio_interruptClear(myGpio_t* instance_ptr, uint32_t mask);
 uint32_t myGpio_interruptGetEnabled(myGpio_t* instance_ptr);
 uint32_t myGpio_interruptGetStatus(myGpio_t* instance_ptr);
+/* @} */
 
 /**
- * Funzione di testing
+ * @example tb_gpio.c
+ * @name Funzioni di testing
  */
 void tb_gpio(void);
 

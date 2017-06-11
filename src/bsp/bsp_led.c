@@ -1,9 +1,9 @@
 /**
 * @file bsp_led.c
+* @brief Implementazione delle funzioni di gestione dei LED.
 * @author: Antonio Riccio
-* @email antonio.riccio.27@gmail.com
 * @copyright
-* Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>
+* Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>.
 * This program is free software; you can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the
 * Free Software Foundation; either version 3 of the License, or any later version.
@@ -14,12 +14,8 @@
 * if not, write to the Free Software Foundation, Inc.,
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
-* @addtogroup bsp
+* @addtogroup BSP
 * @{
-* @details
-*
-* Implementazione delle funzioni di gestione dei LED.
-*
 */
 /***************************** Include Files *********************************/
 #include "bsp_led.h"
@@ -27,9 +23,7 @@
 myGpio_t gpio_led;
 
 /**
- * Inizializza l'hardware di supporto.
- *
- * @param none.
+ * @brief Inizializza l'hardware di supporto.
  *
  * @return none.
  */
@@ -43,7 +37,7 @@ void led_init(void)
 }
 
 /**
- * Abilita i LED selezionati.
+ * @brief Abilita i LED selezionati.
  *
  * @param leds_to_enable è la maschera di bit indicante i LED da abilitare.
  *
@@ -56,9 +50,9 @@ void led_enable(uint32_t leds_to_enable)
 }
 
 /**
- * Disabilita i LED selezionati.
+ * @brief Disabilita i LED selezionati.
  *
- * @param leds_to_enable è la maschera di bit indicante i LED da disabilitare.
+ * @param leds_to_disable è la maschera di bit indicante i LED da disabilitare.
  *
  * @return none.
  */
@@ -68,7 +62,7 @@ void led_disable(uint32_t leds_to_disable)
 }
 
 /**
- * Accende i LED selezionati.
+ * @brief Accende i LED selezionati.
  *
  * @param on_leds è la maschera di bit indicante i LED da accendere.
  *
@@ -83,9 +77,9 @@ void led_on(uint32_t on_leds)
 }
 
 /**
- * Spegne i LED selezionati.
+ * @brief Spegne i LED selezionati.
  *
- * @param on_leds è la maschera di bit indicante i LED da spegnere.
+ * @param off_leds è la maschera di bit indicante i LED da spegnere.
  *
  * @return none.
  *
@@ -98,7 +92,7 @@ void led_off(uint32_t off_leds)
 }
 
 /**
- * Commuta lo stato dei LED selezionati.
+ * @brief Commuta lo stato dei LED selezionati.
  *
  * @param toggle_leds è la maschera di bit indicante i LED da commutare.
  *

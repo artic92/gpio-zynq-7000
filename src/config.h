@@ -1,9 +1,9 @@
 /**
 * @file config.h
+* @brief Definizioni dipendenti dal design hardware sottostante.
 * @author: Antonio Riccio
-* @email antonio.riccio.27@gmail.com
 * @copyright
-* Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>
+* Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>.
 * This program is free software; you can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the
 * Free Software Foundation; either version 3 of the License, or any later version.
@@ -13,11 +13,6 @@
 * You should have received a copy of the GNU General Public License along with this program;
 * if not, write to the Free Software Foundation, Inc.,
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*
-* @details
-*
-* Questo file header isola le uniche definizioni dipendenti dal design hardware
-* sottostante.
 *
 */
 #ifndef SRC_CONFIG_H_

@@ -1,9 +1,10 @@
  /**
  * @file gpio_ll.h
+ * @brief Definizioni e prototipi di funzioni di basso livello per l'accesso
+ * diretto alla periferica.
  * @author: Antonio Riccio
- * @email antonio.riccio.27@gmail.com
  * @copyright
- * Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>
+ * Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>.
  * This program is free software; you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the
  * Free Software Foundation; either version 3 of the License, or any later version.
@@ -14,13 +15,11 @@
  * if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * @addtogroup gpio
+ * @addtogroup API_LL
  * @{
- * @details
  *
- * Questo file header contiene definizioni e prototipi per funzioni di basso livello
- * che possono essere usate per accedere direttamente alla periferica.
- *
+ * @details Funzioni di basso livello per l'accesso diretto alla periferica. Questo livello
+ *    è utilizzato dall'API di livello superiore per l'accesso alla periferica.
  */
 #ifndef SRC_GPIO_LL_H_
 #define SRC_GPIO_LL_H_
@@ -29,9 +28,9 @@
 #include <inttypes.h>
 
 /************************** Constant Definitions *****************************/
-/** @name Registri
- *
- * Spiazzamenti da utilizzare per l'accesso ai registri della periferica
+/**
+ * @name Registri
+ * @brief Spiazzamenti da utilizzare per l'accesso ai registri della periferica
  * @{
  */
 #define GPIO_DOUT_OFFSET  0
@@ -43,7 +42,7 @@
 /* @} */
 
 /**
- * Scrive un valore in un registro della periferica. La scrittura è su 32 bit.
+ * @brief Scrive un valore in un registro della periferica. La scrittura è su 32 bit.
  *
  * @param gpio_base_ptr è il puntatore all'indirizzo base della periferica.
  * @param offset è lo spiazzamento necessario a puntare al registro corretto.
@@ -54,7 +53,7 @@
 void gpio_write_mask(uint32_t* gpio_base_ptr, int offset, uint32_t mask);
 
 /**
- * Legge un valore da un registro della periferica. La lettura è su 32 bit.
+ * @brief Legge un valore da un registro della periferica. La lettura è su 32 bit.
  *
  * @param gpio_base_ptr è il puntatore all'indirizzo base della periferica.
  * @param offset è lo spiazzamento necessario a puntare al registro corretto.
@@ -64,7 +63,7 @@ void gpio_write_mask(uint32_t* gpio_base_ptr, int offset, uint32_t mask);
 uint32_t gpio_read_mask(uint32_t* gpio_base_ptr, int offset);
 
 /**
- * Commuta uno o più bit di un registro della periferica.
+ * @brief Commuta uno o più bit di un registro della periferica.
  *
  * @param gpio_base_ptr è il puntatore all'indirizzo base dell'area di memoria
  *    assegnata alla periferica.

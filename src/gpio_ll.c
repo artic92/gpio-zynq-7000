@@ -1,9 +1,9 @@
 /**
 * @file gpio_ll.c
+* @brief Implementazione delle funzionalità di accesso di basso livello.
 * @author: Antonio Riccio
-* @email antonio.riccio.27@gmail.com
 * @copyright
-* Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>
+* Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>.
 * This program is free software; you can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the
 * Free Software Foundation; either version 3 of the License, or any later version.
@@ -14,12 +14,8 @@
 * if not, write to the Free Software Foundation, Inc.,
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
-* @addtogroup gpio
+* @addtogroup API_LL
 * @{
-* @details
-*
-* Implementazione delle funzionalità di accesso di basso livello per la periferica GPIO.
-*
 */
 /***************************** Include Files ********************************/
 #include <assert.h>

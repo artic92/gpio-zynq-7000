@@ -1,7 +1,8 @@
 /**
 * @file bsp_led.h
+* @brief Definisce un board support package per la gestione semplificata
+* dei LED attraverso la periferica @ref GPIO.
 * @author: Antonio Riccio
-* @email antonio.riccio.27@gmail.com
 * @copyright
 * Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>
 * This program is free software; you can redistribute it and/or modify it under the terms of the
@@ -14,12 +15,12 @@
 * if not, write to the Free Software Foundation, Inc.,
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
-* @addtogroup bsp
+* @addtogroup BSP
 * @{
-* @details
 *
-* Questo file header definisce un board support package per la gestione semplificata
-* dei LED attraverso la periferica @ref gpio.
+* @details
+*   API che definiscono un basic support package per l'utilizzo semplificato dei
+*   LED, switch e bottoni per la board Zybo.
 *
 */
 #ifndef SRC_BSP_LED_H_
@@ -30,28 +31,39 @@
 #include "config.h"
 
 /************************** Constant Definitions *****************************/
+/**
+ * @name Definizioni dei pin
+ * @{
+ */
 #define LED0 GPIO_PIN_0
 #define LED1 GPIO_PIN_1
 #define LED2 GPIO_PIN_2
 #define LED3 GPIO_PIN_3
+/** @} */
 
 /**
- * Funzione di inizializazzione
+ * @name Funzioni di inizializazzione
+ * @{
  */
 void led_init(void);
+/** @} */
 
 /**
- * Funzioni di configurazione
+ * @name Funzioni di configurazione
+ * @{
  */
 void led_enable(uint32_t leds_to_enable);
 void led_disable(uint32_t leds_to_disable);
+/** @} */
 
 /**
- * Funzioni per le operazioni di I/O
+ * @name Funzioni per le operazioni di I/O
+ * @{
  */
 void led_on(uint32_t on_leds);
 void led_off(uint32_t off_leds);
 void led_toggle(uint32_t toggle_leds);
+/** @} */
 
 #endif /* SRC_BSP_LED_H_ */
 /** @} */

@@ -1,9 +1,9 @@
 /**
 * @file bsp_switch.c
+* @brief Implementazione delle funzioni di gestione degli switch.
 * @author: Antonio Riccio
-* @email antonio.riccio.27@gmail.com
 * @copyright
-* Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>
+* Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>.
 * This program is free software; you can redistribute it and/or modify it under the terms of the
 * GNU General Public License as published by the
 * Free Software Foundation; either version 3 of the License, or any later version.
@@ -14,12 +14,8 @@
 * if not, write to the Free Software Foundation, Inc.,
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
-* @addtogroup bsp
+* @addtogroup BSP
 * @{
-* @details
-*
-* Implementazione delle funzioni di gestione degli switch.
-*
 */
 /***************************** Include Files *********************************/
 #include "bsp_switch.h"
@@ -27,11 +23,15 @@
 myGpio_t gpio_switch;
 
 /**
- * Inizializza l'hardware di supporto.
+ * @brief Inizializza l'hardware di supporto.
  *
  * @param int_config è una costante che configura il supporto alle interruzioni.
  *    Se impostata come INT_ENABLED abilita le interruzioni, se impostata a
  *    INT_DISABLED il supporto alle interruzioni è disabilitato.
+ *
+ * @note
+ *    L'implementazione della funzione di gestione dell'interruzione è demandata
+ *    all'utilizzatore. Il nome dell'ISR è SWT_IRQHandler(void).
  *
  * @return none.
  */
@@ -45,7 +45,7 @@ void switch_init(interrupt_support int_config)
 }
 
 /**
- * Abilita gli switch selezionati.
+ * @brief Abilita gli switch selezionati.
  *
  * @param swts_to_enable è la maschera di bit indicante gli switch da abilitare.
  *
@@ -57,7 +57,7 @@ void switch_enable(uint32_t swts_to_enable)
 }
 
 /**
- * Lettura dello stato degli switch selezionati.
+ * @brief Lettura dello stato degli switch selezionati.
  *
  * @param mask è la maschera di bit che specifica a quali switch leggere lo stato.
  *
