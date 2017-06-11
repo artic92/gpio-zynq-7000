@@ -27,7 +27,7 @@ void tb_gpio(void)
 {
   myGpio_config gpio_config;
   gpio_config.base_address = (uint32_t*)GPIO_LED_BASEADDR;
-  gpio_config.interrupt_enabled = INT_DISABLED;
+  gpio_config.interrupt_config = INT_DISABLED;
   myGpio_init(&gpio_led, &gpio_config);
 
   gpio_config.base_address = (uint32_t*)GPIO_SWITCH_BASEADDR;

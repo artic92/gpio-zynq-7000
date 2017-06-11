@@ -75,11 +75,11 @@ int setup()
 
   // inizializzazione delle periferiche GPIO
   gpio_config.base_address = (uint32_t*)GPIO_LED_BASEADDR;
-  gpio_config.interrupt_enabled = INT_DISABLED;
+  gpio_config.interrupt_config = INT_DISABLED;
   myGpio_init(&gpio_led, &gpio_config);
 
   gpio_config.base_address = (uint32_t*)GPIO_SWITCH_BASEADDR;
-  gpio_config.interrupt_enabled = INT_ENABLED;
+  gpio_config.interrupt_config = INT_ENABLED;
   myGpio_init(&gpio_switch, &gpio_config);
 
   myGpio_setDataDirection(&gpio_led, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, GPIO_WRITE);

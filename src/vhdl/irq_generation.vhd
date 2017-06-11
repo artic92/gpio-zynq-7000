@@ -46,10 +46,10 @@ entity irq_generation is
            irq : out STD_LOGIC);                                  --! segnale collegato alla PS per la segnalazione di un evento interrompente
 end irq_generation;
 
---! @brief Architettura nel dominio strutturale per irq_generation
+--! Architettura nel dominio strutturale per irq_generation
 architecture Structural of irq_generation is
 
---! @details Il componente seguente genera un segnale impulsivo a partire da un segnale a livelli.
+--! Il componente genera un segnale impulsivo a partire da un segnale a livelli.
 --! Questo è necessario per consentire al latch di catturare il segnale
 --! in ingresso solo nel momento in cui si verifica la richiesta di interruzione
 --! da parte della fonte interrompente.

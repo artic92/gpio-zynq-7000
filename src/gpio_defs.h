@@ -32,7 +32,7 @@ typedef enum
 {
   INT_ENABLED,          /**< Supporto alle interruzioni presente nell'hardware */
   INT_DISABLED          /**< Supporto alle interruzioni non presente nell'hardware */
-} interrupt_support;
+} interrupt;
 
 /**
  * @brief Enumerazione che indica se il dispositivo è configurato e pronto.

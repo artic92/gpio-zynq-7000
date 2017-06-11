@@ -1,4 +1,4 @@
-interrupt/**
+/**
 * @file gpio.c
 * @brief Implementazione delle funzionalità del device driver per la periferica GPIO.
 * @author: Antonio Riccio
@@ -48,7 +48,7 @@ int myGpio_init(myGpio_t* instance_ptr, myGpio_config* config_ptr)
 
   // Popola la struttura dati del device con i dati forniti
   instance_ptr->base_address = (uint32_t*)config_ptr->base_address;
-  instance_ptr->interrupt = config_ptr->interrupt;
+  instance_ptr->interrupt_support = config_ptr->interrupt_config;
 
   // Indica che l'istanza è pronta per l'uso, inizializzata senza errori
   instance_ptr->isReady = COMPONENT_READY;
@@ -178,7 +178,7 @@ void myGpio_interruptEnable(myGpio_t* instance_ptr, uint32_t mask)
   // Verifica che il dispositivo è pronto e funzionante
   assert(instance_ptr->isReady == COMPONENT_READY);
   // Verifica che il dispositivo supporta le interruzioni
-  assert(instance_ptr->interrupt == INT_ENABLED);
+  assert(instance_ptr->interrupt_support == INT_ENABLED);
 
   gpio_write_mask(instance_ptr->base_address, GPIO_IER_OFFSET, gpio_read_mask(instance_ptr->base_address, GPIO_IER_OFFSET) | mask);
 }
@@ -201,7 +201,7 @@ void myGpio_interruptDisable(myGpio_t* instance_ptr, uint32_t mask)
   // Verifica che il dispositivo è pronto e funzionante
   assert(instance_ptr->isReady == COMPONENT_READY);
   // Verifica che il dispositivo supporta le interruzioni
-  assert(instance_ptr->interrupt == INT_ENABLED);
+  assert(instance_ptr->interrupt_support == INT_ENABLED);
 
   gpio_write_mask(instance_ptr->base_address, GPIO_IER_OFFSET, gpio_read_mask(instance_ptr->base_address, GPIO_IER_OFFSET) & ~mask);
 }
@@ -225,7 +225,7 @@ void myGpio_interruptClear(myGpio_t* instance_ptr, uint32_t mask)
   // Verifica che il dispositivo è pronto e funzionante
   assert(instance_ptr->isReady == COMPONENT_READY);
   // Verifica che il dispositivo supporta le interruzioni
-  assert(instance_ptr->interrupt == INT_ENABLED);
+  assert(instance_ptr->interrupt_support == INT_ENABLED);
 
   gpio_write_mask(instance_ptr->base_address, GPIO_ICL_OFFSET, mask);
   gpio_write_mask(instance_ptr->base_address, GPIO_ICL_OFFSET, 0x00000000);
@@ -246,7 +246,7 @@ uint32_t myGpio_interruptGetEnabled(myGpio_t* instance_ptr)
   // Verifica che il dispositivo è pronto e funzionante
   assert(instance_ptr->isReady == COMPONENT_READY);
   // Verifica che il dispositivo supporta le interruzioni
-  assert(instance_ptr->interrupt == INT_ENABLED);
+  assert(instance_ptr->interrupt_support == INT_ENABLED);
 
   return gpio_read_mask(instance_ptr->base_address, GPIO_IER_OFFSET);
 }
@@ -271,7 +271,7 @@ uint32_t myGpio_interruptGetStatus(myGpio_t* instance_ptr)
   // Verifica che il dispositivo è pronto e funzionante
   assert(instance_ptr->isReady == COMPONENT_READY);
   // Verifica che il dispositivo supporta le interruzioni
-  assert(instance_ptr->interrupt == INT_ENABLED);
+  assert(instance_ptr->interrupt_support == INT_ENABLED);
 
   return gpio_read_mask(instance_ptr->base_address, GPIO_ISR_OFFSET);
 }

@@ -63,7 +63,7 @@
  */
 typedef struct {
 	uint32_t* base_address;	   							///< Indirizzo base della periferica
-	interrupt interrupt_support;	  ///< Se è presente il supporto alle interruzioni
+	interrupt interrupt_config;	  ///< Se è presente il supporto alle interruzioni
 } myGpio_config;
 
 /**
