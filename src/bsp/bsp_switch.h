@@ -24,6 +24,7 @@
 /***************************** Include Files *********************************/
 #include <inttypes.h>
 #include "config.h"
+#include "gpio.h"
 
 /**************************** Type Definitions ******************************/
 /**

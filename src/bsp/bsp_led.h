@@ -29,6 +29,7 @@
 /***************************** Include Files *********************************/
 #include <inttypes.h>
 #include "config.h"
+#include "gpio.h"
 
 /************************** Constant Definitions *****************************/
 /**
