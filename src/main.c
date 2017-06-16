@@ -48,12 +48,13 @@ void loop(void);
 void gpio_IRQHandler(void*);
 
 /**
-* @details
-* Applicazione di testing per le funzionalità della periferica. Questa
-* Applicazione fa uso del meccanismo delle interruzioni per implementare
-* un contatore. Ogni volta che viene alzato uno switch
-* il contatore viene incrementato di un valore pari al valore in binario
-* del bottone o dello switch premuto. L'incremento del conteggio è effettuato
+*
+* @brief Applicazione di testing per le funzionalità della periferica.
+*
+* Questa applicazione fa uso del meccanismo delle interruzioni per implementare
+* un contatore. Ogni volta che viene alzato uno switch/premuto un pulsante
+* il contatore viene incrementato di un valore pari al valore in binario della
+* configurazione dei pulsanti o degli switch. L'incremento del conteggio è effettuato
 * nella ISR opportunamente definita.
 */
 int main()

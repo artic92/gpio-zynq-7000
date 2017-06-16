@@ -1,115 +1,155 @@
-//===- uio.c ----------------------------------------------------*- C -*-===//
-//
-//  Copyright (C) 2017  Mario Barbareschi (mario.barbareschi@unina.it)
-//
-//  This file is part of Linux Driver: Examples.
-//
-//  Linux Driver: Examples is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU Affero General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  Linux Driver: Examples is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Affero General Public License for more details.
-//
-//  You should have received a copy of the GNU Affero General Public License
-//  along with Linux Driver: Examples. If not, see
-//  <https://www.gnu.org/licenses/agpl-3.0.html>.
-//
-//===----------------------------------------------------------------------===//
-/// \file uio.cpp
-/// \author Mario Barbareschi
-/// \brief This application reads/writes GPIO devices by means of a UIO device.
-//===----------------------------------------------------------------------===//
-
+/**
+* @file uio.c
+* @brief Applicazione che fa uso di UIO per il controllo della periferica GPIO
+*		senza il meccanismo dell interruzioni.
+* @author: Antonio Riccio
+* @copyright
+* Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>.
+* This program is free software; you can redistribute it and/or modify it under the terms of the
+* GNU General Public License as published by the
+* Free Software Foundation; either version 3 of the License, or any later version.
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+* without even the implied warranty of MERCHANTABILITY
+* or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+* You should have received a copy of the GNU General Public License along with this program;
+* if not, write to the Free Software Foundation, Inc.,
+* 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+*
+* @addtogroup LINUX
+* @{
+*
+* @addtogroup UIO
+* @{
+*
+* @details Questo modulo contiene codice che serve a controllare la periferica GPIO
+*		utilizzando il servizio Universal Input/Output offerto dal kernel Linux.
+*		I driver sono scritti in due varianti che si differenziano per l'uso del
+*		meccanismo delle interruzioni.
+*/
+/***************************** Include Files ********************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/mman.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/mman.h>
 
-#define IN 0
-#define OUT 1
+#include "gpio_ll.h"
 
+#define DEBUG
 #define GPIO_MAP_SIZE 0x10000
 
-#define GPIO_DATAOUT_OFFSET 0x00
-#define GPIO_TRI_OFFSET 0x04
-#define GPIO_DATAIN_OFFSET 0x08
+int fd_led, fd_swt;
+char *uiod_l, *uiod_s;
+void *led_base_addr, *swt_base_addr;
 
-void usage(void);
+/************************** Function Prototypes *****************************/
+void setup(void);
+void loop(void);
 
+/**
+* @brief Esegue un test di funzionamento accendendo e spegnendo i LED in base
+* allo stato degli switch o dei pulsanti.
+*/
 int main(int argc, char *argv[])
 {
-	int c;
-	int fd;
-	int direction=IN;
-	char *uiod;
-	int value = 0;
+	uiod_l = argv[1];
+	uiod_s = argv[2];
 
-	void *ptr;
+	printf("Controlla lo stato dei led muovendo gli switch o premendo i pulsanti!\n");
+	printf("Per terminare l'applicazione premi CTRL+C\n");
 
-	printf("GPIO UIO test.\n");
-	while((c = getopt(argc, argv, "d:io:h")) != -1) {
-		switch(c) {
-		case 'd':
-			uiod=optarg;
-			break;
-		case 'i':
-			direction=IN;
-			break;
-		case 'o':
-			direction=OUT;
-			value=atoi(optarg);
-			break;
-		case 'h':
-			usage();
-			return 0;
-		default:
-			printf("invalid option: %c\n", (char)c);
-			usage();
-			return -1;
-		}
+	setup();
+	for(;;) loop();
 
-	}
+	// Unmapping degli indirizzi fisici della periferiche con quelli
+	// virtuali del processo in esecuzione
+	munmap(led_base_addr, GPIO_MAP_SIZE);
+	munmap(swt_base_addr, GPIO_MAP_SIZE);
 
-	/* Open the UIO device file */
-	fd = open(uiod, O_RDWR);
-	if (fd < 1) {
-		perror(argv[0]);
-		printf("Invalid UIO device file:%s.\n", uiod);
-		usage();
-		return -1;
-	}
-
-	/* mmap the UIO device */
-	/* contrary to gpioNoDriver, here the file descriptor is generated
-	   from the a /dev/uio device instead of /dev/mem			*/
-	ptr = mmap(NULL, GPIO_MAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-
-	if (direction == IN) {
-	/* Read from GPIO */
-		*((unsigned *)(ptr + GPIO_TRI_OFFSET)) = 0;
-		value = *((unsigned *) (ptr + GPIO_DATAIN_OFFSET));
-		printf("%s: input: %08x\n",argv[0], value);
-	} else {
-	/* Write to GPIO */
-		*((unsigned *)(ptr + GPIO_TRI_OFFSET)) = 255;
-
-		*((unsigned *)(ptr + GPIO_DATAOUT_OFFSET)) = value;
-	}
-
-	munmap(ptr, GPIO_MAP_SIZE);
-
+	// Chiusura dei file
+	close(fd_led);
+	close(fd_swt);
 	return 0;
 }
 
-void usage(){
-	printf("*argv[0] -d <UIO_DEV_FILE> -i|-o <VALUE>\n");
-	printf("    -d               UIO device file. e.g. /dev/uio0");
-	printf("    -i               Input from GPIO\n");
-	printf("    -o <VALUE>       Output to GPIO\n");
-	return;
+void setup(void)
+{
+	#ifdef DEBUG
+	printf("[DEBUG] Apertura dei device files...\n");
+	#endif
+
+	// Apre il device file relativo ai LED in modalità sola srittura
+	fd_led = open(uiod_l, O_RDWR);
+	if (fd_led < 1) {
+		printf("Apertura device file (%s) non riuscita! Errore: %s\n", uiod_l, strerror(errno));
+		printf("Utilizzo del driver: ./uio input_device_path output_device_path.\n Es: ./uio /dev/uio0 /dev/uio1\n");
+		exit(-1);
+	}
+
+	// Apre il device file relativo agli switch/pulsanti in modalità sola lettura
+	fd_swt = open(uiod_s, O_RDWR);
+	if (fd_swt < 1) {
+		printf("Apertura device file (%s) non riuscita! Errore: %s\n", uiod_s, strerror(errno));
+		printf("Utilizzo del driver: ./uio input_device_path output_device_path.\nEs: ./uio /dev/uio0 /dev/uio1\n");
+		close(fd_led);
+		exit(-1);
+	}
+
+	#ifdef DEBUG
+	printf("[DEBUG] Mapping degli indirizzi tra indirizzi fisici e virtuali...\n");
+	#endif
+
+	// Mappa gli indirizzi fisici della periferiche con quelli virtuali del processo in esecuzione
+	// NOTA: questa funzione restituisce indirizzi virtuali DIVERSI a ciascun processo
+	//			 che vuole far uso dei medesimi indirizzi fisici. Questo è possibile solo
+	//			 se il flag MAP_SHARED è settato.
+	led_base_addr = mmap(NULL, GPIO_MAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd_led, 0);
+	if(led_base_addr == MAP_FAILED){
+		printf("Mapping degli indirizzi per il descrittore %s non riuscito. Errore: %s\n", uiod_l, strerror(errno));
+		close(fd_led);
+		close(fd_swt);
+		exit(-1);
+	}
+
+	swt_base_addr = mmap(NULL, GPIO_MAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd_swt, 0);
+	if(swt_base_addr == MAP_FAILED){
+		printf("Mapping degli indirizzi per il descrittore %s non riuscito. Errore: %s\n", uiod_s, strerror(errno));
+		munmap(led_base_addr, GPIO_MAP_SIZE);
+		close(fd_led);
+		close(fd_swt);
+		exit(-1);
+	}
+
+	#ifdef DEBUG
+	printf("[DEBUG] Configurazione dei device hardware...\n");
+	#endif
+
+	// Le GPIO dei LED sono configurate in scrittura
+	*((unsigned *)(led_base_addr + GPIO_TRI_OFFSET)) = 0x000F;
+
+	// Le GPIO degli switch/pulsanti sono configurate in lettura
+	*((unsigned *)(swt_base_addr + GPIO_TRI_OFFSET)) = 0x0000;
+
+	#ifdef DEBUG
+	printf("[DEBUG] Configurazione completata!\n");
+	#endif
 }
+
+void loop(void)
+{
+	unsigned swt_status = 0;
+
+	// Lettura dello stato degli switch
+	swt_status = *((unsigned *)(swt_base_addr + GPIO_DIN_OFFSET));
+
+	#ifdef DEBUG
+	printf("[DEBUG] Stato degli switch %08x\n", swt_status);
+	#endif
+
+	// Propagazione dello stato degli switch/pulsanti sui LED
+	*((unsigned *)(led_base_addr + GPIO_DOUT_OFFSET)) = swt_status;
+}
+/** @} */
+/** @} */
