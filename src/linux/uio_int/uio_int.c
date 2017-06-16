@@ -38,7 +38,7 @@
 #define DEBUG
 #define GPIO_MAP_SIZE 0x10000
 
-int fd_led, fd_swt, led_data;
+int fd_led, fd_swt, led_data = 0;
 char *uiod_l, *uiod_s;
 void *led_base_addr, *swt_base_addr;
 
@@ -131,8 +131,7 @@ void setup(void)
 	// Le GPIO degli switch/pulsanti sono configurate in lettura
 	*((unsigned *)(swt_base_addr + GPIO_TRI_OFFSET)) = 0x0000;
 	// Abilitazione del meccanismo delle interruzioni per gli switch/pulsanti
-	*((unsigned *)(swt_base_addr + GPIO_IER_OFFSET)) = 0xFFFF;
-	*((unsigned *)(swt_base_addr + GPIO_ICL_OFFSET)) = 0xFFFF;
+	*((unsigned *)(swt_base_addr + GPIO_IER_OFFSET)) = 0x000F;
 
 	#ifdef DEBUG
 	printf("[DEBUG] Configurazione completata!\n");
@@ -143,9 +142,11 @@ void loop(void)
 {
 	int swt_status = 0;
 
-	printf("In attesa di leggere...\n");
-	// Lettura dello stato degli switch
-	if(read(fd_swt, &swt_status, sizeof(swt_status)) < 0){
+	printf("In attesa che il dato sia pronto...\n");
+
+	// Comunica al processo UIO l'intenzione di voler leggere dai registri della
+	// periferica al verificarsi di un evento (la chiamata è bloccante)
+	if(read(fd_swt, &swt_status, sizeof(swt_status)) != sizeof(swt_status)){
 		printf("Lettura non riuscita. Errore: %s\n", strerror(errno));
 		munmap(led_base_addr, GPIO_MAP_SIZE);
 		munmap(swt_base_addr, GPIO_MAP_SIZE);
@@ -153,22 +154,30 @@ void loop(void)
 		close(fd_swt);
 		exit(-1);
 	}
-	printf("Il dato è arrivato!\n");
 
+	// Lettura del dato dalla periferica
+	swt_status = *((unsigned *)(swt_base_addr + GPIO_DIN_OFFSET));
+
+	// L'istruzione di write è necessaria per notificare il processo UIO dell'operazione
+	// di scrittura. In seguito a tale chiamata infatti il processo replicherà
+	// la scrittura sulla periferica associata. Se non si chiama questa funzione
+	// non vengono applicati effetivamente le operazioni sui registri della periferica
 	if (write(fd_swt, &swt_status, sizeof(swt_status)) < sizeof(swt_status)) {
 		perror("write");
 		close(fd_swt);
 		exit(EXIT_FAILURE);
 	}
 
-	// Acknoledge delle interruzioni
-	*((unsigned *)(swt_base_addr + GPIO_ICL_OFFSET)) = 0xFFFF;
+	// Acknoledge delle interruzioni. Scrittura redirezionata al device
+	// file di UIO, il quale la replicherà solo dopo aver chiamato la funzione write
+	*((unsigned *)(swt_base_addr + GPIO_ICL_OFFSET)) = *((unsigned *)(swt_base_addr + GPIO_ISR_OFFSET));
 
-	// Incrementa variabile di conteggio in base allo stato degli switch/pulsanti
+	// Incrementa la variabile di conteggio in base allo stato degli switch/pulsanti
 	led_data = led_data + swt_status;
 
 	#ifdef DEBUG
-	printf("[DEBUG] Stato degli switch %u\n", swt_status);
+	printf("[DEBUG] Stato degli switch %08x\n", swt_status);
+	printf("[DEBUG] Stato del conteggio %08x\n", led_data);
 	#endif
 
 	// Propagazione dello stato degli switch/pulsanti sui LED
