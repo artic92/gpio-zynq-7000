@@ -823,7 +823,11 @@ RECURSIVE              = YES
 # run.
 
 EXCLUDE                = ../src/vhdl \
-                         ../src/bsp/bsp_bare
+                         ../src/bsp/bsp_bare \
+                         ../src/linux/driverkernelModificato \
+                         ../src/linux/mykernelModule \
+                         ../src/linux/tutorial \
+                         ../src/xparameters.h
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
