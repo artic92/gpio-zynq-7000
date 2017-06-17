@@ -19,7 +19,7 @@
 
 // Indica quante periferiche deve gestire il driver
 // (o equivalentemente quanti minor number instanziare per un dato major number)
-#define GPIOS_TO_MANAGE 1
+#define GPIOS_TO_MANAGE 2
 
 #define DRIVER_NAME     "gpio_zynq_driver"
 

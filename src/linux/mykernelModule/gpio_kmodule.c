@@ -48,7 +48,6 @@
 /**************************** Type Definitions ******************************/
 // Struttura dati necessaria al driver per la gestione della periferica
 struct gpio_dev_t{
-  dev_t device_numbers;
   struct cdev device_cdev;
 
   unsigned long *base_addr;
@@ -79,105 +78,28 @@ static struct file_operations gpio_fops = {
 };
 
 /*
- * @brief Chiamata dal kernel quando un processo apre il device file relativo alla periferica.
+ * @brief Chiamata dal kernel quando esiste un device la cui descrizione nel device-tree
+ *    coincide con quella esportata dal modulo attraverso la macro module_platform_driver.
  *
- * @param inode è l'inode relativo al device file. Contiene il major ed il minor number associato
- *    associato al driver della periferica.
- * @param filp è il puntatore ad una struttura struct file che viene creata per ogni processo
- *    che apre il device file.
+ * @param op
  *
  * @return
  */
-int gpio_open(struct inode *inode, struct file *filp)
-{
-  printk(KERN_INFO "[GPIO driver] Apertura device file\n");
-  struct gpio_dev_t* gpio_dev_ptr;
-
-  // Macro che restituisce un puntatore a struct gpio_dev_t partendo dalla struttura
-  // cdev che le è associata il cui nome, nella struct gpio_dev_t, coincide con quello
-  // specificato nel terzo campo
-  gpio_dev_ptr = container_of(inode->i_cdev, struct gpio_dev_t, device_cdev);
-
-  // Associa la scruttura appena ottenuta con il file appena aperto
-  filp->private_data = gpio_dev_ptr;
-
-  return 0;
-}
-
-/*
- * @brief Chiamata dal kernel quando il device file viene chiuso da tutti i processi che
- *    lo avevano in precedenza aperto.
- *
- * @param inode è l'inode relativo al device file. Contiene il major ed il minor number associato
- *    associato al driver della periferica.
- * @param filp è il puntatore ad una struttura struct file che viene creata per ogni processo
- *    che apre il device file.
- *
- * @return
- */
-int gpio_release(struct inode *inode, struct file *filp)
-{
-  printk(KERN_INFO "[GPIO driver] Rilascio device file\n");
-  return 0;
-}
-
-/*
- * @brief Chiamata dal kernel ogni volta che si legge dal device file.
- *
- * @param filp è il puntatore ad una struttura struct file che viene creata per ogni processo
- *    che apre il device file.
- * @param buf è un puntatore ad un buffer nel quale il processo user-space chiamante andrà a
- *    leggere una volta terminata l'operazione.
- * @param count è la dimensione del buffer buf.
- * @param offp
- *
- * @return
- *
- * @warning L'accesso al buffer non può essere diretto ma mediato attraverso la Funzione
- *    copy_to_user per motivi di portabilità.
- */
-ssize_t gpio_read(struct file *filp, char __user *buf, size_t count, loff_t *offp)
-{
-  printk(KERN_INFO "[GPIO driver] Richiesta di lettura\n");
-
-  struct gpio_dev_t* gpio_dev_t_ptr = filp->private_data;
-  unsigned char valore_letto;
-
-  valore_letto = ioread8(gpio_dev_t_ptr->base_addr + (GPIO_DIN_OFFSET/4));
-
-  copy_to_user(buf, &valore_letto, 1);
-  printk(KERN_INFO "[GPIO driver] Carettere letto: %08x\n", valore_letto);
-  return 1;
-}
-
-/*
- * @brief Chiamata dal kernel ogni volta che si scrive sul device file.
- *
- * @param filp è il puntatore ad una struttura struct file che viene creata per ogni processo
- *    che apre il device file.
- * @param buf è un puntatore ad un buffer nel quale il processo user-space ha inserito
- *    i dati da scrivere.
- * @param count è la dimensione del buffer buf.
- * @param offp
- *
- * @return
- */
-ssize_t gpio_write(struct file *filp, char __user *buf, size_t count, loff_t *offp)
-{
-  printk(KERN_INFO "[GPIO driver] Funzione write\n");
-
-  // unsigned char dato_letto;
-  // copy_from_user(&dato_letto, buf, count);
-  // printk(KERN_INFO "[GPIO driver] valore scritto %i\n", dato_letto);
-  return count;
-}
-
 static int gpio_probe(struct platform_device *op)
 {
-  printk(KERN_INFO "[GPIO driver] Inizializzazione driver GPIO\n");
+  printk(KERN_INFO "[GPIO driver] Probing dei device\n");
 
   int ret_status;
   struct device *dev = &op->dev;
+  const struct of_device_id *match;
+
+  // Controlla che la funzione probe sia stata chimata effettivemente perchè vi
+  // è una compatibilità con la struttura of_device_id dichiarata dal modulo
+  // match = of_match_device(gpio_match, &op->dev);
+  // if (!match){
+  //   printk(KERN_WARNING "Probe chiamata su hardware non compatibile!");
+  //   return -EINVAL;
+  // }
 
   // Alloca la struttura dati di gestione del driver
   gpio_dev_t_ptr = kmalloc(sizeof(struct gpio_dev_t), GFP_KERNEL);
@@ -277,7 +199,7 @@ static int gpio_probe(struct platform_device *op)
   }
 
   printk(KERN_INFO "[GPIO driver] Allocazione e mapping di memoria I/O avvenuta correttamente\n");
-  printk(KERN_INFO "Driver correctly set up\n");
+  printk(KERN_INFO "[GPIO driver] Inizializzazione completata correttamente\n");
   return 0;
 }
 
@@ -299,7 +221,110 @@ static int gpio_remove(struct platform_device *op)
   return 0;
 }
 
-// Struttura dati che identifica il device all'interno del device tree
+/*
+ * @brief Chiamata dal kernel quando un processo apre il device file relativo alla periferica.
+ *
+ * @param inode è l'inode relativo al device file. Contiene il major ed il minor number associato
+ *    associato al driver della periferica.
+ * @param filp è il puntatore ad una struttura struct file che viene creata per ogni processo
+ *    che apre il device file.
+ *
+ * @return
+ */
+int gpio_open(struct inode *inode, struct file *filp)
+{
+  printk(KERN_INFO "[GPIO driver] Apertura device file\n");
+  struct gpio_dev_t* gpio_dev_ptr;
+
+  // Macro che restituisce un puntatore a struct gpio_dev_t partendo dalla struttura
+  // cdev che le è associata il cui nome, nella struct gpio_dev_t, coincide con quello
+  // specificato nel terzo campo
+  gpio_dev_ptr = container_of(inode->i_cdev, struct gpio_dev_t, device_cdev);
+
+  // Associa la scruttura appena ottenuta con il file appena aperto
+  filp->private_data = gpio_dev_ptr;
+
+  return 0;
+}
+
+/*
+ * @brief Chiamata dal kernel quando il device file viene chiuso da tutti i processi che
+ *    lo avevano in precedenza aperto.
+ *
+ * @param inode è l'inode relativo al device file. Contiene il major ed il minor number associato
+ *    associato al driver della periferica.
+ * @param filp è il puntatore ad una struttura struct file che viene creata per ogni processo
+ *    che apre il device file.
+ *
+ * @return
+ */
+int gpio_release(struct inode *inode, struct file *filp)
+{
+  printk(KERN_INFO "[GPIO driver] Rilascio device file\n");
+  return 0;
+}
+
+/*
+ * @brief Chiamata dal kernel ogni volta che si legge dal device file.
+ *
+ * @param filp è il puntatore ad una struttura struct file che viene creata per ogni processo
+ *    che apre il device file.
+ * @param buf è un puntatore ad un buffer nel quale il processo user-space chiamante andrà a
+ *    leggere una volta terminata l'operazione.
+ * @param count è la dimensione del buffer buf.
+ * @param offp
+ *
+ * @return
+ *
+ * @warning L'accesso al buffer non può essere diretto ma mediato attraverso la Funzione
+ *    copy_to_user per motivi di portabilità.
+ */
+ssize_t gpio_read(struct file *filp, char __user *buf, size_t count, loff_t *offp)
+{
+  printk(KERN_INFO "[GPIO driver] Richiesta di lettura\n");
+
+  struct gpio_dev_t* gpio_dev_t_ptr = filp->private_data;
+  unsigned char valore_letto;
+
+  valore_letto = ioread8(gpio_dev_t_ptr->base_addr + (GPIO_DIN_OFFSET/4));
+
+  copy_to_user(buf, &valore_letto, 1);
+  printk(KERN_INFO "[GPIO driver] Carettere letto: %08x\n", valore_letto);
+  return 1;
+}
+
+/*
+ * @brief Chiamata dal kernel ogni volta che si scrive sul device file.
+ *
+ * @param filp è il puntatore ad una struttura struct file che viene creata per ogni processo
+ *    che apre il device file.
+ * @param buf è un puntatore ad un buffer nel quale il processo user-space ha inserito
+ *    i dati da scrivere.
+ * @param count è la dimensione del buffer buf.
+ * @param offp
+ *
+ * @return
+ */
+ssize_t gpio_write(struct file *filp, char __user *buf, size_t count, loff_t *offp)
+{
+  printk(KERN_INFO "[GPIO driver] Funzione write\n");
+
+  struct gpio_dev_t* gpio_dev_t_ptr = filp->private_data;
+  unsigned char dato_letto;
+  copy_from_user(&dato_letto, buf, 1);
+
+  iowrite8(0x0F, gpio_dev_t_ptr->base_addr + (GPIO_TRI_OFFSET/4));
+  iowrite8(dato_letto, gpio_dev_t_ptr->base_addr + (GPIO_DOUT_OFFSET/4));
+
+  printk(KERN_INFO "[GPIO driver] valore scritto %08x\n", dato_letto);
+  return 1;
+}
+
+/************************** Mapping col device tree ****************************/
+// Il driver verrà associato a ciascuna periferica che nel device tree esporrà
+// le proprietà espresse nella struttura of_device_id
+// NOTA: E' possibile aggiungere più compatibilità, purchè la lista sia terminata
+//       da una struct NULL
 static struct of_device_id gpio_match[] = {
 		{.compatible = "ZynqSwitch"},
 		{},
@@ -307,6 +332,9 @@ static struct of_device_id gpio_match[] = {
 
 MODULE_DEVICE_TABLE(of, gpio_match);
 
+// Questa struttura indica al kernel quali funzioni chiamare se esiste, nel device
+// tree, dell'hardware compatibile con la struttura di tipo of_device_id
+// Nel caso esista una compatibilità, la funzione .probe verrà chiamata per prima
 static struct platform_driver gpio_driver = {
 		.probe = gpio_probe,
 		.remove = gpio_remove,
@@ -319,7 +347,7 @@ static struct platform_driver gpio_driver = {
 
 module_platform_driver(gpio_driver);
 
-// Informazioni associate al modulo
+/********************* Informazioni associate al modulo ************************/
 MODULE_AUTHOR("Antonio Riccio");
 MODULE_DESCRIPTION("Modulo kernel per l'accesso ad una periferica GPIO su Zynq 7000");
 MODULE_LICENSE("GPL");
