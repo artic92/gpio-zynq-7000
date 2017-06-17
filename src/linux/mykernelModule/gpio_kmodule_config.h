@@ -21,7 +21,7 @@
 // (o equivalentemente quanti minor number instanziare per un dato major number)
 #define GPIOS_TO_MANAGE 2
 
-#define DRIVER_NAME     "gpio_zynq_driver"
+#define DRIVER_NAME     "gpiodrv"
 
 #define GPIO_DOUT_OFFSET  0
 #define GPIO_DIN_OFFSET   8
