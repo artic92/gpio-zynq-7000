@@ -46,15 +46,12 @@
 #include "gpio_kmodule_config.h"
 
 /**************************** Type Definitions ******************************/
-// Struttura dati necessaria al driver per la gestione della periferica
+// Struttura dati contenente tutte le informazioni necessarie al driver per la
+// gestione della periferica
 struct gpio_dev_t{
   struct cdev device_cdev;
-
-  unsigned long *base_addr;
-  unsigned int size;
-
   struct resource res;
-  unsigned int remap_size;
+  unsigned long *base_addr;
 };
 
 struct gpio_dev_t* gpio_dev_t_ptr;
@@ -65,8 +62,8 @@ static struct class *gpio_class;
 /************************** Function Prototypes *****************************/
 static int gpio_open(struct inode *, struct file *);
 static int gpio_release(struct inode *, struct file *);
-static ssize_t gpio_read(struct file *, char __user *, size_t , loff_t *);
-static ssize_t gpio_write(struct file *, char __user *, size_t , loff_t *);
+ssize_t gpio_read(struct file *, char __user *, size_t, loff_t *);
+ssize_t gpio_write(struct file *, const char __user *, size_t, loff_t *);
 
 // Operazioni supportate dal driver
 static struct file_operations gpio_fops = {
@@ -87,14 +84,15 @@ static struct file_operations gpio_fops = {
  */
 static int gpio_probe(struct platform_device *op)
 {
-  printk(KERN_INFO "[GPIO driver] Probing dei device\n");
-
   int ret_status;
+  unsigned int size;
   struct device *dev = &op->dev;
-  const struct of_device_id *match;
 
-  // Controlla che la funzione probe sia stata chimata effettivemente perchè vi
-  // è una compatibilità con la struttura of_device_id dichiarata dal modulo
+  printk(KERN_INFO "[GPIO driver] Probing dei device...\n");
+
+  // const struct of_device_id *match;
+  // // Controlla che la funzione probe sia stata chimata effettivemente perchè vi
+  // // è una compatibilità con la struttura of_device_id dichiarata dal modulo
   // match = of_match_device(gpio_match, &op->dev);
   // if (!match){
   //   printk(KERN_WARNING "Probe chiamata su hardware non compatibile!");
@@ -108,13 +106,7 @@ static int gpio_probe(struct platform_device *op)
     return -1;
   }
 
-  if (of_address_to_resource(dev->of_node, 0, &gpio_dev_t_ptr->res)){
-    printk(KERN_INFO "Cannot get device resource\n");
-    kfree(gpio_dev_t_ptr);
-  }
-
   /******************** Registrazione di un device a caratteri ************************/
-
   // Inizializza una struct cdev_t necessaria al kernel per la gestione del device driver
   // e le associa una struttura file_operations indicante i servizi supportati dal driver
   cdev_init(&gpio_dev_t_ptr->device_cdev, &gpio_fops);
@@ -140,7 +132,6 @@ static int gpio_probe(struct platform_device *op)
   printk(KERN_INFO "[GPIO driver] Registrazione device a caratteri avvenuta correttamente\n");
 
   /********************* Creazione del device file nella cartella /dev ****************/
-
   gpio_class = class_create(THIS_MODULE, DRIVER_NAME);
   if(!gpio_class){
     printk(KERN_INFO "Cannot create device class\n");
@@ -149,7 +140,7 @@ static int gpio_probe(struct platform_device *op)
     return -EFAULT;
   }
 
-  if (device_create(gpio_class, NULL, gpio_dev_number ,NULL, "gpioDriver") == NULL){
+  if (device_create(gpio_class, NULL, gpio_dev_number ,NULL, "gpio") == NULL){
     printk(KERN_INFO "Cannot create device\n");
     class_destroy(gpio_class);
     unregister_chrdev_region(gpio_dev_number, GPIOS_TO_MANAGE);
@@ -159,22 +150,25 @@ static int gpio_probe(struct platform_device *op)
 
   printk(KERN_INFO "[GPIO driver] Creazione device file avvenuta correttamente\n");
 
-  /********************* Allocazione e mapping di memoria per l'I/O *******************/
+  /******************** Estrazione informazioni dal device-tree ***********************/
+  // Popola la struct res del contenuto del tag "reg" del device-tree
+  // Esempio: reg = <0x43c00000 0x10000>
+  // of_address_to_resource pertanto effettuerà le seguenti azioni:
+  // res.start = 0x43c00000 e res.end = 0x43c01000
+  if (of_address_to_resource(dev->of_node, 0, &gpio_dev_t_ptr->res)){
+    printk(KERN_INFO "Cannot get device resource\n");
+    class_destroy(gpio_class);
+    unregister_chrdev_region(gpio_dev_number, GPIOS_TO_MANAGE);
+    kfree(gpio_dev_t_ptr);
+    return -1;
+  }
 
-  // gpio_dev_t_ptr->res = platform_get_resource(op, IORESOURCE_MEM, 0);
-  // if(!gpio_dev_t_ptr->res){
-  //   dev_err(&op->dev, "No memory resource\n");
-  //   class_destroy(gpio_class);
-  //   device_destroy(gpio_class, gpio_dev_number);
-  //   unregister_chrdev_region(gpio_dev_number, GPIOS_TO_MANAGE);
-  //   kfree(gpio_dev_t_ptr);
-  //   return -ENODEV;
-  // }
-
-  gpio_dev_t_ptr->size = gpio_dev_t_ptr->res.end - gpio_dev_t_ptr->res.start + 1;
-
-  // Richiede l'allocazione di una certa area di memoria di lunghezza size a partire da res->start
-  if(!request_mem_region(gpio_dev_t_ptr->res.start, gpio_dev_t_ptr->size, DRIVER_NAME)){
+  /********************* Allocazione e mapping della memoria I/O *********************/
+  // Richiede l'allocazione di una certa area di memoria di grandezza resource_size(&gpio_dev_t_ptr->res)
+  // per il driver DRIVER_NAME
+  // La macro resource_size restituisce la dimensione del segmento fisico associato alla periferica
+  // Esempio: reg = <0x43c00000 0x10000> -> resource_size restituirà 0x10000
+  if(!request_mem_region(gpio_dev_t_ptr->res.start, resource_size(&gpio_dev_t_ptr->res), DRIVER_NAME)){
     printk(KERN_INFO "Cannot gain memory in exclusive way\n");
     class_destroy(gpio_class);
     device_destroy(gpio_class, gpio_dev_number);
@@ -183,14 +177,16 @@ static int gpio_probe(struct platform_device *op)
     return -ENOMEM;
   }
 
-  gpio_dev_t_ptr->remap_size = resource_size(&gpio_dev_t_ptr->res);
+  size = gpio_dev_t_ptr->res.end - gpio_dev_t_ptr->res.start + 1;
 
-  // Effettua il mapping tra gli indirzzi fisici dell'area di memoria di I/O e gli
-  // indirizzi virtuali del processo driver
-  gpio_dev_t_ptr->base_addr = ioremap(gpio_dev_t_ptr->res.start, gpio_dev_t_ptr->size);
-  if (gpio_dev_t_ptr->base_addr == NULL) {
+  // Effettua il mapping tra il segmento di memoria fisico associato alla periferica
+  // e lo spazio virtuale del processo
+  // NOTA: la combinazione ioremap + of_address_to_resource è equivalente alla chiamata
+  //       di of_iomap(res.start, resource_size(&res))
+  gpio_dev_t_ptr->base_addr = ioremap(gpio_dev_t_ptr->res.start, size);
+  if (!gpio_dev_t_ptr->base_addr) {
     printk(KERN_INFO "Cannot map virtual address\n");
-    release_mem_region(gpio_dev_t_ptr->res.start, gpio_dev_t_ptr->remap_size);
+    release_mem_region(gpio_dev_t_ptr->res.start, resource_size(&gpio_dev_t_ptr->res));
     class_destroy(gpio_class);
     device_destroy(gpio_class, gpio_dev_number);
     unregister_chrdev_region(gpio_dev_number, GPIOS_TO_MANAGE);
@@ -208,7 +204,7 @@ static int gpio_remove(struct platform_device *op)
   printk(KERN_INFO "[GPIO driver] Rimozione driver GPIO\n");
 
   iounmap(gpio_dev_t_ptr->base_addr);
-  release_mem_region(gpio_dev_t_ptr->res.start, gpio_dev_t_ptr->remap_size);
+  release_mem_region(gpio_dev_t_ptr->res.start, resource_size(&gpio_dev_t_ptr->res));
 
   class_destroy(gpio_class);
   device_destroy(gpio_class, gpio_dev_number);
@@ -231,19 +227,19 @@ static int gpio_remove(struct platform_device *op)
  *
  * @return
  */
-int gpio_open(struct inode *inode, struct file *filp)
+static int gpio_open(struct inode *inode, struct file *filp)
 {
-  printk(KERN_INFO "[GPIO driver] Apertura device file\n");
   struct gpio_dev_t* gpio_dev_ptr;
 
+  printk(KERN_INFO "[GPIO driver] Apertura device file\n");
+
   // Macro che restituisce un puntatore a struct gpio_dev_t partendo dalla struttura
-  // cdev che le è associata il cui nome, nella struct gpio_dev_t, coincide con quello
-  // specificato nel terzo campo
+  // cdev che le è associata. Il nome della struct cdev_t, nella struct gpio_dev_t,
+  // deve coincidere con quello specificato nel terzo campo
   gpio_dev_ptr = container_of(inode->i_cdev, struct gpio_dev_t, device_cdev);
 
   // Associa la scruttura appena ottenuta con il file appena aperto
   filp->private_data = gpio_dev_ptr;
-
   return 0;
 }
 
@@ -258,7 +254,7 @@ int gpio_open(struct inode *inode, struct file *filp)
  *
  * @return
  */
-int gpio_release(struct inode *inode, struct file *filp)
+static int gpio_release(struct inode *inode, struct file *filp)
 {
   printk(KERN_INFO "[GPIO driver] Rilascio device file\n");
   return 0;
@@ -281,15 +277,21 @@ int gpio_release(struct inode *inode, struct file *filp)
  */
 ssize_t gpio_read(struct file *filp, char __user *buf, size_t count, loff_t *offp)
 {
+  unsigned char valore;
+  struct gpio_dev_t* gpio_dev_t_ptr;
+
   printk(KERN_INFO "[GPIO driver] Richiesta di lettura\n");
 
-  struct gpio_dev_t* gpio_dev_t_ptr = filp->private_data;
-  unsigned char valore_letto;
+  gpio_dev_t_ptr = filp->private_data;
 
-  valore_letto = ioread8(gpio_dev_t_ptr->base_addr + (GPIO_DIN_OFFSET/4));
+  valore = ioread8(gpio_dev_t_ptr->base_addr + (GPIO_DIN_OFFSET/4));
 
-  copy_to_user(buf, &valore_letto, 1);
-  printk(KERN_INFO "[GPIO driver] Carettere letto: %08x\n", valore_letto);
+  if(copy_to_user(buf, &valore, 1) != 0){
+    printk(KERN_WARNING "[GPIO driver] Problema nella copia dei dati al processo user-space!\n");
+    return -EFAULT;
+  }
+
+  printk(KERN_INFO "[GPIO driver] Carettere letto: %08x\n", valore);
   return 1;
 }
 
@@ -305,18 +307,24 @@ ssize_t gpio_read(struct file *filp, char __user *buf, size_t count, loff_t *off
  *
  * @return
  */
-ssize_t gpio_write(struct file *filp, char __user *buf, size_t count, loff_t *offp)
+ssize_t gpio_write(struct file *filp, const char __user *buf, size_t count, loff_t *offp)
 {
-  printk(KERN_INFO "[GPIO driver] Funzione write\n");
+  unsigned char valore;
+  struct gpio_dev_t* gpio_dev_t_ptr;
 
-  struct gpio_dev_t* gpio_dev_t_ptr = filp->private_data;
-  unsigned char dato_letto;
-  copy_from_user(&dato_letto, buf, 1);
+  printk(KERN_INFO "[GPIO driver] Richiesta di scrittura\n");
+
+  gpio_dev_t_ptr = filp->private_data;
+
+  if(copy_from_user(&valore, buf, 1) != 0){
+    printk(KERN_WARNING "[GPIO driver] Problema nella copia dei dati dal processo user-space!\n");
+    return -EFAULT;
+  }
 
   iowrite8(0x0F, gpio_dev_t_ptr->base_addr + (GPIO_TRI_OFFSET/4));
-  iowrite8(dato_letto, gpio_dev_t_ptr->base_addr + (GPIO_DOUT_OFFSET/4));
+  iowrite8(valore, gpio_dev_t_ptr->base_addr + (GPIO_DOUT_OFFSET/4));
 
-  printk(KERN_INFO "[GPIO driver] valore scritto %08x\n", dato_letto);
+  printk(KERN_INFO "[GPIO driver] Valore scritto %08x\n", valore);
   return 1;
 }
 
@@ -326,7 +334,7 @@ ssize_t gpio_write(struct file *filp, char __user *buf, size_t count, loff_t *of
 // NOTA: E' possibile aggiungere più compatibilità, purchè la lista sia terminata
 //       da una struct NULL
 static struct of_device_id gpio_match[] = {
-		{.compatible = "ZynqSwitch"},
+		{.compatible = "embedded.unina.it,gpiov2.0"},
 		{},
 };
 
