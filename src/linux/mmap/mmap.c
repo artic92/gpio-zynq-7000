@@ -56,9 +56,6 @@ void loop(void);
 
 /**
 *
-* @addtogroup LINUX
-* @{
-*
 * @addtogroup MMAP
 * @{
 */
@@ -174,5 +171,4 @@ void loop(void)
 	// Propagazione dello stato degli switch/pulsanti sui LED
 	*((unsigned *)(led_base_addr + GPIO_DOUT_OFFSET)) = swt_status;
 }
-/** @} */
 /** @} */

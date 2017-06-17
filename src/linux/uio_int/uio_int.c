@@ -1,7 +1,7 @@
 /**
 * @file uio_int.c
 * @brief Applicazione che fa uso di UIO per il controllo della periferica GPIO
-*		attraverso il meccaniscmo delle interruzioni.
+*		attraverso il meccanismo delle interruzioni.
 * @author: Antonio Riccio
 * @copyright
 * Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>.
@@ -18,12 +18,15 @@
 * @addtogroup LINUX
 * @{
 *
-* @addtogroup UIO
-* @{
-*
 * @addtogroup UIO_INTERRUPT
 * @{
+*
+* @details Questo modulo contiene driver per la periferica @ref GPIO che fanno uso
+* 	del servizio Universal Input/Output offerto dal kernel Linux. Il driver utilizza
+*		il meccanismo delle interruzioni per le proprie operazioni.
 */
+/** @} */
+/** @} */
 /***************************** Include Files ********************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,6 +49,11 @@ void *led_base_addr, *swt_base_addr;
 void setup(void);
 void loop(void);
 
+/**
+*
+* @addtogroup UIO_INTERRUPT
+* @{
+*/
 /**
 * @details Questa applicazione fa uso del meccanismo delle interruzioni per implementare
 * un contatore. Ogni volta che viene alzato uno switch/premuto un pulsante
@@ -73,13 +81,21 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+/**
+* @brief Configura l'hardware.
+*
+* @details Questa funzione apre i descrittori dei device file relativi alle periferiche
+*		controllate dal modulo UIO, mappa gli indirizzi fisici della periferica con
+*		gli inidirizzi virtuali del processo che ne richiede i servizi e configura
+*		opportunamente la periferica hardware.
+*/
 void setup(void)
 {
 	#ifdef DEBUG
 	printf("[DEBUG] Apertura dei device files...\n");
 	#endif
 
-	// Apre il device file relativo ai LED in modalità sola srittura
+	// Apre il device file relativo ai LED
 	fd_led = open(uiod_l, O_RDWR);
 	if (fd_led < 1) {
 		printf("Apertura device file (%s) non riuscita! Errore: %s\n", uiod_l, strerror(errno));
@@ -87,7 +103,7 @@ void setup(void)
 		exit(-1);
 	}
 
-	// Apre il device file relativo agli switch/pulsanti in modalità sola lettura
+	// Apre il device file relativo agli switch/pulsanti
 	fd_swt = open(uiod_s, O_RDWR);
 	if (fd_swt < 1) {
 		printf("Apertura device file (%s) non riuscita! Errore: %s\n", uiod_s, strerror(errno));
@@ -138,6 +154,10 @@ void setup(void)
 	#endif
 }
 
+/**
+* @brief Legge il valore degli switch con una chiamata bloccante e riporta
+* 	il loro stato sui LED.
+*/
 void loop(void)
 {
 	int swt_status = 0;
@@ -183,6 +203,4 @@ void loop(void)
 	// Propagazione dello stato degli switch/pulsanti sui LED
 	*((unsigned *)(led_base_addr + GPIO_DOUT_OFFSET)) = led_data;
 }
-/** @} */
-/** @} */
 /** @} */
