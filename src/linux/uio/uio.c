@@ -18,6 +18,9 @@
 * @addtogroup LINUX
 * @{
 *
+* @details In questo modulo sono presenti diversi programmi utili ad illustrare
+*		l'utilizzo del kernel Linux per il controllo della periferica @ref GPIO.
+*
 * @addtogroup UIO
 * @{
 *
@@ -25,7 +28,10 @@
 *		utilizzando il servizio Universal Input/Output offerto dal kernel Linux.
 *		I driver sono scritti in due varianti che si differenziano per l'uso del
 *		meccanismo delle interruzioni.
+*
 */
+/** @} */
+/** @} */
 /***************************** Include Files ********************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,7 +55,15 @@ void setup(void);
 void loop(void);
 
 /**
-* @brief Esegue un test di funzionamento accendendo e spegnendo i LED in base
+*
+* @addtogroup LINUX
+* @{
+*
+* @addtogroup UIO
+* @{
+*/
+/**
+* @details Esegue un test di funzionamento accendendo e spegnendo i LED in base
 * allo stato degli switch o dei pulsanti.
 */
 int main(int argc, char *argv[])
@@ -74,13 +88,21 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+/**
+* @brief Configura l'hardware.
+*
+* @details Questa funzione apre i descrittori dei device file relativi alle periferiche
+*		controllate dal modulo UIO, mappa gli indirizzi fisici della periferica con
+*		gli inidirizzi virtuali del processo che ne richiede i servizi e configura
+*		opportunamente la periferica hardware.
+*/
 void setup(void)
 {
 	#ifdef DEBUG
 	printf("[DEBUG] Apertura dei device files...\n");
 	#endif
 
-	// Apre il device file relativo ai LED in modalità sola srittura
+	// Apre il device file relativo ai LED
 	fd_led = open(uiod_l, O_RDWR);
 	if (fd_led < 1) {
 		printf("Apertura device file (%s) non riuscita! Errore: %s\n", uiod_l, strerror(errno));
@@ -88,7 +110,7 @@ void setup(void)
 		exit(-1);
 	}
 
-	// Apre il device file relativo agli switch/pulsanti in modalità sola lettura
+	// Apre il device file relativo agli switch/pulsanti
 	fd_swt = open(uiod_s, O_RDWR);
 	if (fd_swt < 1) {
 		printf("Apertura device file (%s) non riuscita! Errore: %s\n", uiod_s, strerror(errno));
@@ -137,6 +159,10 @@ void setup(void)
 	#endif
 }
 
+/**
+* @brief Legge il valore degli switch con una chiamata non bloccante e riporta
+* 	il loro stato sui LED.
+*/
 void loop(void)
 {
 	unsigned swt_status = 0;
