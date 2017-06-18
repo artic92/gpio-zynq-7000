@@ -50,12 +50,16 @@
                                           instanziare per un dato major number)*/
 #define DRIVER_NAME       "gpiodrv"
 
+#define NO 0
+#define YES 1
+
 #define GPIO_DOUT_OFFSET  0
 #define GPIO_DIN_OFFSET   8
 #define GPIO_TRI_OFFSET   4
 #define GPIO_IER_OFFSET  12
 #define GPIO_ICL_OFFSET  16
 #define GPIO_ISR_OFFSET  20
+#define INT_ENABLE 0x0000000F
 
 /* @brief Instanzia una struttura idr.
  *
@@ -64,6 +68,8 @@
  *    Per approfondimenti si veda: https://lwn.net/Articles/103209/
  */
 static DEFINE_IDR(gpio_idr);
+
+static DEFINE_IDR(irq_idr);
 
 /* @brief Crea un semaforo binario per l'accesso alla struttura dati idr.
  *
@@ -75,15 +81,19 @@ static DEFINE_MUTEX(minor_lock);
 
 // Dati globali a supporto del driver
 struct class *gpio_class;
-struct cdev device_cdev;
+struct cdev *device_cdev_p;
 dev_t gpiodrv_dev_number;
 int major;
+spinlock_t read_lock;
+wait_queue_head_t rdqueue;
+int can_read = NO;
 
 struct gpio_device{
   dev_t gpiox_dev_number;
   struct resource res;
   unsigned int irq;
   unsigned long *base_addr;
+  spinlock_t write_lock;
 };
 
 /************************** Function Prototypes *****************************/
@@ -123,6 +133,8 @@ static int gpio_probe(struct platform_device *op)
     printk(KERN_WARNING "Allocazione della memoria non riuscita!");
     return -1;
   }
+
+  spin_lock_init(&gpio_device_ptr->write_lock);
 
   mutex_lock(&minor_lock);
     // Richiede l'allocazione nell'idr del dispositivo gpio_device_ptr
@@ -175,23 +187,6 @@ static int gpio_probe(struct platform_device *op)
   // Esempio: interrupts = <0 29 4> -> irq_of_parse_and_map restituirà 29
   gpio_device_ptr->irq = irq_of_parse_and_map(op->dev.of_node, 0);
 
-  /*************** Richiesta e registrazione di un interrupt handler *****************/
-  // Se il dispositivo supporta le interruzioni
-  if(gpio_device_ptr->irq != 0){
-    printk(KERN_INFO "[GPIO driver] Gestione dell'interrupt line: %d\n", gpio_device_ptr->irq);
-
-    ret_status = request_irq(gpio_device_ptr->irq, (irq_handler_t) gpio_isr, 0, DRIVER_NAME, NULL);
-    if(ret_status){
-      printk(KERN_WARNING "Cannot get interrupt line %d\n", gpio_device_ptr->irq);
-      device_destroy(gpio_class, gpio_device_ptr->gpiox_dev_number);
-      mutex_lock(&minor_lock);
-        idr_remove(&gpio_idr, ret_status);
-      mutex_unlock(&minor_lock);
-      kfree(gpio_device_ptr);
-      return ret_status;
-    }
-  }
-
   /********************* Allocazione e mapping della memoria I/O *********************/
   // Richiede l'allocazione di una certa area di memoria di grandezza resource_size(&gpio_dev_t_ptr->res)
   // per il driver DRIVER_NAME
@@ -220,15 +215,45 @@ static int gpio_probe(struct platform_device *op)
   if (!gpio_device_ptr->base_addr) {
     printk(KERN_INFO "Cannot map virtual address\n");
     release_mem_region(gpio_device_ptr->res.start, resource_size(&gpio_device_ptr->res));
-    if(gpio_device_ptr->irq != 0){
-      free_irq(gpio_device_ptr->irq, NULL);
-    }
     device_destroy(gpio_class, gpio_device_ptr->gpiox_dev_number);
     mutex_lock(&minor_lock);
       idr_remove(&gpio_idr, ret_status);
     mutex_unlock(&minor_lock);
     kfree(gpio_device_ptr);
     return -ENOMEM;
+  }
+
+  /*************** Richiesta e registrazione di un interrupt handler *****************/
+  // Se il dispositivo supporta le interruzioni
+  if(gpio_device_ptr->irq != 0){
+    printk(KERN_INFO "[GPIO driver] Gestione dell'interrupt line: %d\n", gpio_device_ptr->irq);
+
+    ret_status = idr_alloc(&gpio_idr, gpio_device_ptr->base_addr, gpio_device_ptr->irq, gpio_device_ptr->irq+1, GFP_KERNEL);
+    printk(KERN_INFO "[GPIO driver] Base address memorizzato con ID: %i\n", ret_status);
+    if (ret_status == -ENOSPC) {
+      printk(KERN_WARNING "Non è possibile allocare nell'idr il puntatore alla zona fisica di memoria!");
+      release_mem_region(gpio_device_ptr->res.start, resource_size(&gpio_device_ptr->res));
+      device_destroy(gpio_class, gpio_device_ptr->gpiox_dev_number);
+      mutex_lock(&minor_lock);
+        idr_remove(&gpio_idr, ret_status);
+      mutex_unlock(&minor_lock);
+      kfree(gpio_device_ptr);
+      return -EINVAL;
+    }
+    ret_status = request_irq(gpio_device_ptr->irq, (irq_handler_t) gpio_isr, 0, DRIVER_NAME, NULL);
+    if(ret_status){
+      printk(KERN_WARNING "Cannot get interrupt line %d\n", gpio_device_ptr->irq);
+      release_mem_region(gpio_device_ptr->res.start, resource_size(&gpio_device_ptr->res));
+      device_destroy(gpio_class, gpio_device_ptr->gpiox_dev_number);
+      mutex_lock(&minor_lock);
+        idr_remove(&gpio_idr, ret_status);
+      mutex_unlock(&minor_lock);
+      kfree(gpio_device_ptr);
+      return ret_status;
+    }
+
+    // Abilita le interruzioni nella periferica
+    iowrite32(INT_ENABLE, gpio_device_ptr->base_addr + (GPIO_IER_OFFSET/4));
   }
 
   printk(KERN_INFO "[GPIO driver] Allocazione e mapping di memoria I/O avvenuta correttamente\n");
@@ -250,6 +275,7 @@ static int gpio_remove(struct platform_device *op)
   //   idr_remove(&gpio_idr, ret_status);
   // mutex_unlock(&minor_lock);
   // kfree(gpio_device_ptr);
+  // ANKE RDQUEUE
   return 0;
 }
 
@@ -306,7 +332,7 @@ static int gpio_release(struct inode *inode, struct file *filp)
 }
 
 /*
- * @brief Chiamata dal kernel ogni volta che si legge dal device file.
+ * @brief Chiamata dal kernel ogni volta che si legge dal device file. La lettura è bloccante.
  *
  * @param filp è il puntatore ad una struttura struct file che viene creata per ogni processo
  *    che apre il device file.
@@ -322,6 +348,7 @@ static int gpio_release(struct inode *inode, struct file *filp)
  */
 ssize_t gpio_read(struct file *filp, char __user *buf, size_t count, loff_t *offp)
 {
+  int ret_status;
   unsigned char valore;
   struct gpio_device* gpio_dev_t_ptr;
 
@@ -329,7 +356,21 @@ ssize_t gpio_read(struct file *filp, char __user *buf, size_t count, loff_t *off
 
   gpio_dev_t_ptr = filp->private_data;
 
+  printk(KERN_DEBUG "Process %i (%s) going to sleep\n", current->pid, current->comm);
+  // Attende sulla wait queue il verificarsi di un dato evento, indicato dalla
+  // condizione nel secondo parametro
+  ret_status = wait_event_interruptible(rdqueue, can_read == YES);
+  if(ret_status != 0){
+    printk(KERN_DEBUG "Qualche segnale ha interrotto il sonno. Uscita dalla funzione...");
+    return -ERESTARTSYS;
+  }
+  printk(KERN_DEBUG "Awoken %i (%s)\n", current->pid, current->comm);
+
   valore = ioread8(gpio_dev_t_ptr->base_addr + (GPIO_DIN_OFFSET/4));
+
+  spin_lock_irq(&read_lock);
+    can_read = NO;
+  spin_unlock_irq(&read_lock);
 
   if(copy_to_user(buf, &valore, 1) != 0){
     printk(KERN_WARNING "[GPIO driver] Problema nella copia dei dati al processo user-space!\n");
@@ -356,6 +397,7 @@ ssize_t gpio_write(struct file *filp, const char __user *buf, size_t count, loff
 {
   unsigned char valore;
   struct gpio_device* gpio_dev_t_ptr;
+  unsigned long flags;
 
   printk(KERN_INFO "[GPIO driver] Richiesta di scrittura\n");
 
@@ -366,8 +408,12 @@ ssize_t gpio_write(struct file *filp, const char __user *buf, size_t count, loff
     return -EFAULT;
   }
 
-  iowrite8(0x0F, gpio_dev_t_ptr->base_addr + (GPIO_TRI_OFFSET/4));
-  iowrite8(valore, gpio_dev_t_ptr->base_addr + (GPIO_DOUT_OFFSET/4));
+  // L'accesso alla periferica è gestito in mutua esclusione poichè è
+  // una risorsa condivisa tra più processi
+  spin_lock_irqsave(&gpio_dev_t_ptr->write_lock, flags);
+    iowrite8(0x0F, gpio_dev_t_ptr->base_addr + (GPIO_TRI_OFFSET/4));
+    iowrite8(valore, gpio_dev_t_ptr->base_addr + (GPIO_DOUT_OFFSET/4));
+  spin_unlock_irqrestore(&gpio_dev_t_ptr->write_lock, flags);
 
   printk(KERN_INFO "[GPIO driver] Valore scritto %08x\n", valore);
   return 1;
@@ -375,12 +421,29 @@ ssize_t gpio_write(struct file *filp, const char __user *buf, size_t count, loff
 
 static irqreturn_t gpio_isr(int irq, struct pt_regs * regs)
 {
+  uint32_t pending_interrupt;
+  unsigned long* gpio_base_addr_ptr;
+  unsigned long flags;
+
   printk(KERN_INFO "[GPIO driver] Inizio IRQ handling\n");
 
+  gpio_base_addr_ptr = idr_find(&irq_idr, irq);
+  if (!gpio_base_addr_ptr) {
+    printk(KERN_WARNING "[GPIO driver] Puntatore al base address non trovato!\n");
+    return -ENODEV;
+  }
+
   // Acknoledgement delle interruzioni pendenti
+  pending_interrupt = ioread32(gpio_base_addr_ptr + (GPIO_ISR_OFFSET/4));
+  iowrite32(pending_interrupt, gpio_base_addr_ptr + (GPIO_ICL_OFFSET/4));
+
+  spin_lock_irqsave(&read_lock, flags);
+    can_read = YES;
+  spin_unlock_irqrestore(&read_lock, flags);
 
   // Sblocca eventuali processi in attesa di leggere
   printk(KERN_INFO "Process %i (%s) awakening the readers...\n", current->pid, current->comm);
+  wake_up_interruptible(&rdqueue);
 
   printk(KERN_INFO "[GPIO driver] Fine IRQ handling\n");
   return IRQ_HANDLED;
@@ -417,17 +480,15 @@ static struct platform_driver gpio_driver = {
 static int __init gpio_init(void)
 {
   int ret_status;
-  struct cdev *cdevp;
 
   printk(KERN_INFO "[GPIO driver] Inzio fase di inizializzazione...");
 
   /******************** Registrazione di un device a caratteri ************************/
   // Inizializza una struct cdev_t necessaria al kernel per la gestione del device driver
   // e le associa una struttura file_operations indicante i servizi supportati dal driver
-  cdevp = cdev_alloc();
-  cdevp->ops = &gpio_fops;
-  cdevp->owner = THIS_MODULE;
-  device_cdev = *cdevp;
+  device_cdev_p = cdev_alloc();
+  device_cdev_p->ops = &gpio_fops;
+  device_cdev_p->owner = THIS_MODULE;
 
   // Alloca dinamicamente il primo range di device driver numbers diponibile
   // I minor number vanno da 0 a GPIOS_TO_MANAGE-1
@@ -440,7 +501,7 @@ static int __init gpio_init(void)
   major = MAJOR(gpiodrv_dev_number);
 
   // Aggiorna il device driver model con GPIOS_TO_MANAGE-1 dispositivi
-  ret_status = cdev_add(&device_cdev, gpiodrv_dev_number, GPIOS_TO_MANAGE-1);
+  ret_status = cdev_add(device_cdev_p, gpiodrv_dev_number, GPIOS_TO_MANAGE-1);
   if(ret_status < 0){
     printk(KERN_WARNING "Registrazione del driver non riuscita!");
     unregister_chrdev_region(gpiodrv_dev_number, GPIOS_TO_MANAGE-1);
@@ -452,10 +513,13 @@ static int __init gpio_init(void)
   gpio_class = class_create(THIS_MODULE, DRIVER_NAME);
   if(!gpio_class){
     printk(KERN_INFO "Cannot create device class\n");
-    cdev_del(&device_cdev);
+    cdev_del(device_cdev_p);
     unregister_chrdev_region(gpiodrv_dev_number, GPIOS_TO_MANAGE-1);
     return -EFAULT;
   }
+
+  spin_lock_init(&read_lock);
+  init_waitqueue_head(&rdqueue);
 
   printk(KERN_INFO "[GPIO driver] Fine fase di inizializzazione...");
   return platform_driver_register(&gpio_driver);;
@@ -465,8 +529,10 @@ static void __exit gpio_exit(void)
 {
   printk(KERN_INFO "[GPIO driver] Deinizializzazione...");
 
+  // TODO DEALLLOCA MUTEX E IDR!!!! spinlock e waitqueue
+
   class_destroy(gpio_class);
-  cdev_del(&device_cdev);
+  cdev_del(device_cdev_p);
   unregister_chrdev_region(gpiodrv_dev_number, GPIOS_TO_MANAGE-1);
 }
 
