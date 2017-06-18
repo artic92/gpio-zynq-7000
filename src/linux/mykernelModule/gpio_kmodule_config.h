@@ -19,7 +19,7 @@
 
 // Indica quante periferiche deve gestire il driver
 // (o equivalentemente quanti minor number instanziare per un dato major number)
-#define GPIOS_TO_MANAGE 2
+#define GPIOS_TO_MANAGE 3
 
 #define DRIVER_NAME     "gpiodrv"
 

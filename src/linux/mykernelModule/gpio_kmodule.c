@@ -42,8 +42,24 @@
 #include <linux/interrupt.h>
 #include <linux/module.h>
 #include <linux/spinlock.h>
+#include <linux/idr.h>
 
-#include "gpio_kmodule_config.h"
+// Indica quante periferiche deve gestire il driver
+// (o equivalentemente quanti minor number instanziare per un dato major number)
+#define GPIOS_TO_MANAGE   3
+#define DRIVER_NAME       "gpiodrv"
+
+#define GPIO_DOUT_OFFSET  0
+#define GPIO_DIN_OFFSET   8
+#define GPIO_TRI_OFFSET   4
+#define GPIO_IER_OFFSET  12
+#define GPIO_ICL_OFFSET  16
+#define GPIO_ISR_OFFSET  20
+
+// Instanzia una struttura idr
+// TODO SPIEGARE COS'è IDR
+static DEFINE_IDR(gpio_idr);
+static DEFINE_MUTEX(minor_lock);  /*< Mutex per l'accesso all'idr
 
 /**************************** Type Definitions ******************************/
 // Struttura dati contenente tutte le informazioni necessarie al driver per la
@@ -53,6 +69,15 @@ struct gpio_dev_t{
   struct resource res;
   unsigned long *base_addr;
   struct class *gpio_class;
+  dev_t gpio_dev_number;
+  unsigned int irq;
+  int major;
+};
+
+struct gpio_device{
+  struct cdev device_cdev;
+  struct resource res;
+  unsigned long *base_addr;
   dev_t gpio_dev_number;
   unsigned int irq;
 };
@@ -87,8 +112,9 @@ static int gpio_probe(struct platform_device *op)
 {
   int ret_status;
   unsigned int size;
+  struct gpio_device *gpio_device_ptr;
 
-  printk(KERN_INFO "[GPIO driver] Probing dei device...\n");
+  printk(KERN_INFO "[GPIO driver] Probing device...\n");
 
   // const struct of_device_id *match;
   // // Controlla che la funzione probe sia stata chimata effettivemente perchè vi
@@ -99,54 +125,32 @@ static int gpio_probe(struct platform_device *op)
   //   return -EINVAL;
   // }
 
-  // Alloca la struttura dati di gestione del driver
-  gpio_dev_t_ptr = kmalloc(sizeof(struct gpio_dev_t), GFP_KERNEL);
-  if(gpio_dev_t_ptr == NULL){
+  gpio_device_ptr = kmalloc(sizeof(struct gpio_device), GFP_KERNEL);
+  if(gpio_device_ptr == NULL){
     printk(KERN_WARNING "Allocazione della memoria non riuscita!");
     return -1;
   }
 
-  /******************** Registrazione di un device a caratteri ************************/
-  // Inizializza una struct cdev_t necessaria al kernel per la gestione del device driver
-  // e le associa una struttura file_operations indicante i servizi supportati dal driver
-  cdev_init(&gpio_dev_t_ptr->device_cdev, &gpio_fops);
-  gpio_dev_t_ptr->device_cdev.owner = THIS_MODULE;
+  mutex_lock(&minor_lock);
+	ret_status = idr_alloc(&gpio_idr, gpio_device_ptr, 0, GPIOS_TO_MANAGE, GFP_KERNEL);
+	if (ret_status == -ENOSPC) {
+		printk(KERN_WARNING "Troppi dispositivi GPIO!");
+    kfree(gpio_device_ptr);
+		return -EINVAL;
+	}
+	mutex_unlock(&minor_lock);
 
-  // Alloca dinamicamente il primo range di device driver numbers diponibile
-  // I minor number vanno da 0 a GPIOS_TO_MANAGE
-  ret_status = alloc_chrdev_region(&gpio_dev_t_ptr->gpio_dev_number, 0, GPIOS_TO_MANAGE, DRIVER_NAME);
-  if(ret_status < 0){
-    printk(KERN_WARNING "Allocazione device numbers non riuscita!");
-    kfree(gpio_dev_t_ptr);
-    return ret_status;
-  }
-
-  // Aggiorna il device driver model
-  ret_status = cdev_add(&gpio_dev_t_ptr->device_cdev, gpio_dev_t_ptr->gpio_dev_number, 1);
-  if(ret_status < 0){
-    printk(KERN_WARNING "Registrazione del driver non riuscita!");
-    unregister_chrdev_region(gpio_dev_t_ptr->gpio_dev_number, GPIOS_TO_MANAGE);
-    kfree(gpio_dev_t_ptr);
-    return ret_status;
-  }
-
-  printk(KERN_INFO "[GPIO driver] Registrazione device a caratteri avvenuta correttamente\n");
+  gpio_device_ptr->gpio_dev_number = MKDEV(gpio_dev_t_ptr->major, ret_status);
 
   /********************* Creazione del device file nella cartella /dev ****************/
-  gpio_dev_t_ptr->gpio_class = class_create(THIS_MODULE, DRIVER_NAME);
-  if(!gpio_dev_t_ptr->gpio_class){
-    printk(KERN_INFO "Cannot create device class\n");
-    unregister_chrdev_region(gpio_dev_t_ptr->gpio_dev_number, GPIOS_TO_MANAGE);
-    kfree(gpio_dev_t_ptr);
-    return -EFAULT;
-  }
-
-  if (device_create(gpio_dev_t_ptr->gpio_class, NULL, gpio_dev_t_ptr->gpio_dev_number ,NULL, "gpio") == NULL){
+  if (device_create(gpio_dev_t_ptr->gpio_class, NULL, gpio_device_ptr->gpio_dev_number, NULL, "gpio%d", ret_status) == NULL){
     printk(KERN_INFO "Cannot create device\n");
-    class_destroy(gpio_dev_t_ptr->gpio_class);
-    cdev_del(&gpio_dev_t_ptr->device_cdev);
-    unregister_chrdev_region(gpio_dev_t_ptr->gpio_dev_number, GPIOS_TO_MANAGE);
-    kfree(gpio_dev_t_ptr);
+
+    mutex_lock(&minor_lock);
+    idr_remove(&gpio_idr, ret_status);
+    mutex_unlock(&minor_lock);
+
+    kfree(gpio_device_ptr);
     return -EFAULT;
   }
 
@@ -157,13 +161,15 @@ static int gpio_probe(struct platform_device *op)
   // Esempio: reg = <0x43c00000 0x10000>
   // of_address_to_resource pertanto effettuerà le seguenti azioni:
   // res.start = 0x43c00000 e res.end = 0x43c01000
-  if (of_address_to_resource(op->dev.of_node, 0, &gpio_dev_t_ptr->res)){
+  if (of_address_to_resource(op->dev.of_node, 0, &gpio_device_ptr->res)){
     printk(KERN_INFO "Cannot get device resource\n");
-    class_destroy(gpio_dev_t_ptr->gpio_class);
-    device_destroy(gpio_dev_t_ptr->gpio_class, gpio_dev_t_ptr->gpio_dev_number);
-    cdev_del(&gpio_dev_t_ptr->device_cdev);
-    unregister_chrdev_region(gpio_dev_t_ptr->gpio_dev_number, GPIOS_TO_MANAGE);
-    kfree(gpio_dev_t_ptr);
+    device_destroy(gpio_dev_t_ptr->gpio_class, gpio_device_ptr->gpio_dev_number);
+
+    mutex_lock(&minor_lock);
+    idr_remove(&gpio_idr, ret_status);
+    mutex_unlock(&minor_lock);
+
+    kfree(gpio_device_ptr);
     return -1;
   }
 
@@ -172,19 +178,25 @@ static int gpio_probe(struct platform_device *op)
   // Il terzo parametro indica quale tag interrupts considerare (se ce ne sono
   // più di uno). In questo caso viene considerato il primo.
   // Esempio: interrupts = <0 29 4> -> irq_of_parse_and_map restituirà 29
-  gpio_dev_t_ptr->irq = irq_of_parse_and_map(op->dev.of_node, 0);
-  printk(KERN_INFO "[GPIO driver] Gestione dell'interrupt line: %d\n", gpio_dev_t_ptr->irq);
+  gpio_device_ptr->irq = irq_of_parse_and_map(op->dev.of_node, 0);
 
   /*************** Richiesta e registrazione di un interrupt handler *****************/
-  ret_status = request_irq(gpio_dev_t_ptr->irq, (irq_handler_t) gpio_isr, 0, DRIVER_NAME, NULL);
-  if(ret_status){
-    printk(KERN_WARNING "Cannot get interrupt line %d\n", gpio_dev_t_ptr->irq);
-    class_destroy(gpio_dev_t_ptr->gpio_class);
-    device_destroy(gpio_dev_t_ptr->gpio_class, gpio_dev_t_ptr->gpio_dev_number);
-    cdev_del(&gpio_dev_t_ptr->device_cdev);
-    unregister_chrdev_region(gpio_dev_t_ptr->gpio_dev_number, GPIOS_TO_MANAGE);
-    kfree(gpio_dev_t_ptr);
-    return ret_status;
+  // Se il dispositivo supporta le interruzioni
+  if(gpio_device_ptr->irq != 0){
+    printk(KERN_INFO "[GPIO driver] Gestione dell'interrupt line: %d\n", gpio_device_ptr->irq);
+
+    ret_status = request_irq(gpio_device_ptr->irq, (irq_handler_t) gpio_isr, 0, DRIVER_NAME, NULL);
+    if(ret_status){
+      printk(KERN_WARNING "Cannot get interrupt line %d\n", gpio_device_ptr->irq);
+      device_destroy(gpio_dev_t_ptr->gpio_class, gpio_device_ptr->gpio_dev_number);
+
+      mutex_lock(&minor_lock);
+      idr_remove(&gpio_idr, ret_status);
+      mutex_unlock(&minor_lock);
+
+      kfree(gpio_device_ptr);
+      return ret_status;
+    }
   }
 
   /********************* Allocazione e mapping della memoria I/O *********************/
@@ -192,58 +204,61 @@ static int gpio_probe(struct platform_device *op)
   // per il driver DRIVER_NAME
   // La macro resource_size restituisce la dimensione del segmento fisico associato alla periferica
   // Esempio: reg = <0x43c00000 0x10000> -> resource_size restituirà 0x10000
-  if(!request_mem_region(gpio_dev_t_ptr->res.start, resource_size(&gpio_dev_t_ptr->res), DRIVER_NAME)){
+  if(!request_mem_region(gpio_device_ptr->res.start, resource_size(&gpio_device_ptr->res), DRIVER_NAME)){
     printk(KERN_INFO "Cannot gain memory in exclusive way\n");
-    free_irq(gpio_dev_t_ptr->irq, NULL);
-    class_destroy(gpio_dev_t_ptr->gpio_class);
-    device_destroy(gpio_dev_t_ptr->gpio_class, gpio_dev_t_ptr->gpio_dev_number);
-    cdev_del(&gpio_dev_t_ptr->device_cdev);
-    unregister_chrdev_region(gpio_dev_t_ptr->gpio_dev_number, GPIOS_TO_MANAGE);
-    kfree(gpio_dev_t_ptr);
+    if(gpio_device_ptr->irq != 0){
+      free_irq(gpio_device_ptr->irq, NULL);
+    }
+    device_destroy(gpio_dev_t_ptr->gpio_class, gpio_device_ptr->gpio_dev_number);
+
+    mutex_lock(&minor_lock);
+    idr_remove(&gpio_idr, ret_status);
+    mutex_unlock(&minor_lock);
+
+    kfree(gpio_device_ptr);
     return -ENOMEM;
   }
 
-  size = gpio_dev_t_ptr->res.end - gpio_dev_t_ptr->res.start + 1;
+  size = gpio_device_ptr->res.end - gpio_device_ptr->res.start + 1;
 
   // Effettua il mapping tra il segmento di memoria fisico associato alla periferica
   // e lo spazio virtuale del processo
   // NOTA: la combinazione ioremap + of_address_to_resource è equivalente alla chiamata
   //       di of_iomap(res.start, resource_size(&res))
-  gpio_dev_t_ptr->base_addr = ioremap(gpio_dev_t_ptr->res.start, size);
-  if (!gpio_dev_t_ptr->base_addr) {
+  gpio_device_ptr->base_addr = ioremap(gpio_device_ptr->res.start, size);
+  if (!gpio_device_ptr->base_addr) {
     printk(KERN_INFO "Cannot map virtual address\n");
-    release_mem_region(gpio_dev_t_ptr->res.start, resource_size(&gpio_dev_t_ptr->res));
-    free_irq(gpio_dev_t_ptr->irq, NULL);
-    class_destroy(gpio_dev_t_ptr->gpio_class);
-    device_destroy(gpio_dev_t_ptr->gpio_class, gpio_dev_t_ptr->gpio_dev_number);
-    cdev_del(&gpio_dev_t_ptr->device_cdev);
-    unregister_chrdev_region(gpio_dev_t_ptr->gpio_dev_number, GPIOS_TO_MANAGE);
-    kfree(gpio_dev_t_ptr);
+    release_mem_region(gpio_device_ptr->res.start, resource_size(&gpio_device_ptr->res));
+    if(gpio_device_ptr->irq != 0){
+      free_irq(gpio_device_ptr->irq, NULL);
+    }
+    device_destroy(gpio_dev_t_ptr->gpio_class, gpio_device_ptr->gpio_dev_number);
+
+    mutex_lock(&minor_lock);
+    idr_remove(&gpio_idr, ret_status);
+    mutex_unlock(&minor_lock);
+
+    kfree(gpio_device_ptr);
     return -ENOMEM;
   }
 
   printk(KERN_INFO "[GPIO driver] Allocazione e mapping di memoria I/O avvenuta correttamente\n");
-  printk(KERN_INFO "[GPIO driver] Inizializzazione completata correttamente\n");
+  printk(KERN_INFO "[GPIO driver] Probing completato correttamente\n");
   return 0;
 }
 
 static int gpio_remove(struct platform_device *op)
-{
-  printk(KERN_INFO "[GPIO driver] Rimozione driver GPIO\n");
-
-  iounmap(gpio_dev_t_ptr->base_addr);
-  release_mem_region(gpio_dev_t_ptr->res.start, resource_size(&gpio_dev_t_ptr->res));
-
-  free_irq(gpio_dev_t_ptr->irq, NULL);
-
-  class_destroy(gpio_dev_t_ptr->gpio_class);
-  device_destroy(gpio_dev_t_ptr->gpio_class, gpio_dev_t_ptr->gpio_dev_number);
-
-  cdev_del(&gpio_dev_t_ptr->device_cdev);
-  unregister_chrdev_region(gpio_dev_t_ptr->gpio_dev_number, GPIOS_TO_MANAGE);
-  kfree(gpio_dev_t_ptr);
-
-  printk(KERN_INFO "[GPIO driver] Rimozione risorse avvenuta correttamente\n");
+{//TODO
+  // printk(KERN_INFO "[GPIO driver] Rimozione driver GPIO\n");
+  //
+  // iounmap(gpio_dev_t_ptr->base_addr);
+  // release_mem_region(gpio_dev_t_ptr->res.start, resource_size(&gpio_dev_t_ptr->res));
+  //
+  // free_irq(gpio_dev_t_ptr->irq, NULL);
+  //
+  // device_destroy(gpio_dev_t_ptr->gpio_class, gpio_dev_t_ptr->gpio_dev_number);
+  //
+  // printk(KERN_INFO "[GPIO driver] Rimozione risorse avvenuta correttamente\n");
   return 0;
 }
 
@@ -259,14 +274,24 @@ static int gpio_remove(struct platform_device *op)
  */
 static int gpio_open(struct inode *inode, struct file *filp)
 {
-  struct gpio_dev_t* gpio_dev_ptr;
+  struct gpio_device* gpio_dev_ptr;
 
   printk(KERN_INFO "[GPIO driver] Apertura device file\n");
+  printk(KERN_INFO "[GPIO driver] Minor number associato al file %i\n", iminor(inode));
+
+  mutex_lock(&minor_lock);
+  gpio_dev_ptr = idr_find(&gpio_idr, iminor(inode));
+  mutex_unlock(&minor_lock);
+
+  if (gpio_dev_ptr == NULL) {
+    printk(KERN_WARNING "[GPIO driver] Non ho trovato il puntatore alla struttura gpio_device!!\n");
+    return -ENODEV;
+  }
 
   // Macro che restituisce un puntatore a struct gpio_dev_t partendo dalla struttura
   // cdev che le è associata. Il nome della struct cdev_t, nella struct gpio_dev_t,
   // deve coincidere con quello specificato nel terzo campo
-  gpio_dev_ptr = container_of(inode->i_cdev, struct gpio_dev_t, device_cdev);
+  // gpio_dev_ptr = container_of(inode->i_cdev, struct gpio_dev_t, device_cdev);
 
   // Associa la scruttura appena ottenuta con il file appena aperto
   filp->private_data = gpio_dev_ptr;
@@ -308,7 +333,7 @@ static int gpio_release(struct inode *inode, struct file *filp)
 ssize_t gpio_read(struct file *filp, char __user *buf, size_t count, loff_t *offp)
 {
   unsigned char valore;
-  struct gpio_dev_t* gpio_dev_t_ptr;
+  struct gpio_device* gpio_dev_t_ptr;
 
   printk(KERN_INFO "[GPIO driver] Richiesta di lettura\n");
 
@@ -340,7 +365,7 @@ ssize_t gpio_read(struct file *filp, char __user *buf, size_t count, loff_t *off
 ssize_t gpio_write(struct file *filp, const char __user *buf, size_t count, loff_t *offp)
 {
   unsigned char valore;
-  struct gpio_dev_t* gpio_dev_t_ptr;
+  struct gpio_device* gpio_dev_t_ptr;
 
   printk(KERN_INFO "[GPIO driver] Richiesta di scrittura\n");
 
@@ -396,7 +421,76 @@ static struct platform_driver gpio_driver = {
 		},
 };
 
-module_platform_driver(gpio_driver);
+// module_platform_driver(gpio_driver);
+
+/************************** Funzioni di inizializzazione *************************/
+// Queste funzioni effettuano operazioni che devono essere svolte solo all'atto
+// dell'inserimento del modulo
+static int __init gpio_init(void)
+{
+  int ret_status;
+
+  printk(KERN_INFO "[GPIO driver] Inzio fase di inizializzazione...");
+
+  // Alloca la struttura dati di gestione del driver
+  gpio_dev_t_ptr = kmalloc(sizeof(struct gpio_dev_t), GFP_KERNEL);
+  if(gpio_dev_t_ptr == NULL){
+    printk(KERN_WARNING "Allocazione della memoria non riuscita!");
+    return -1;
+  }
+
+  /******************** Registrazione di un device a caratteri ************************/
+  // Inizializza una struct cdev_t necessaria al kernel per la gestione del device driver
+  // e le associa una struttura file_operations indicante i servizi supportati dal driver
+  cdev_init(&gpio_dev_t_ptr->device_cdev, &gpio_fops);
+  gpio_dev_t_ptr->device_cdev.owner = THIS_MODULE;
+
+  // Alloca dinamicamente il primo range di device driver numbers diponibile
+  // I minor number vanno da 0 a GPIOS_TO_MANAGE-1
+  ret_status = alloc_chrdev_region(&gpio_dev_t_ptr->gpio_dev_number, 0, GPIOS_TO_MANAGE-1, DRIVER_NAME);
+  if(ret_status < 0){
+    printk(KERN_WARNING "Allocazione device numbers non riuscita!");
+    kfree(gpio_dev_t_ptr);
+    return ret_status;
+  }
+
+  gpio_dev_t_ptr->major = MAJOR(gpio_dev_t_ptr->gpio_dev_number);
+
+  // Aggiorna il device driver model
+  ret_status = cdev_add(&gpio_dev_t_ptr->device_cdev, gpio_dev_t_ptr->gpio_dev_number, GPIOS_TO_MANAGE-1);
+  if(ret_status < 0){
+    printk(KERN_WARNING "Registrazione del driver non riuscita!");
+    unregister_chrdev_region(gpio_dev_t_ptr->gpio_dev_number, GPIOS_TO_MANAGE-1);
+    kfree(gpio_dev_t_ptr);
+    return ret_status;
+  }
+
+
+  // Crea una struct class associata al driver
+  gpio_dev_t_ptr->gpio_class = class_create(THIS_MODULE, DRIVER_NAME);
+  if(!gpio_dev_t_ptr->gpio_class){
+    printk(KERN_INFO "Cannot create device class\n");
+    cdev_del(&gpio_dev_t_ptr->device_cdev);
+    unregister_chrdev_region(gpio_dev_t_ptr->gpio_dev_number, GPIOS_TO_MANAGE-1);
+    kfree(gpio_dev_t_ptr);
+    return -EFAULT;
+  }
+
+  printk(KERN_INFO "[GPIO driver] Registrazione device a caratteri avvenuta correttamente\n");
+  printk(KERN_INFO "[GPIO driver] Fine fase di inizializzazione...");
+  return platform_driver_register(&gpio_driver);;
+}
+
+// static void __exit gpio_exit(void)
+// {
+//   class_destroy(gpio_dev_t_ptr->gpio_class);
+//   cdev_del(&gpio_dev_t_ptr->device_cdev);
+//   unregister_chrdev_region(gpio_dev_t_ptr->gpio_dev_number, GPIOS_TO_MANAGE-1);
+//   kfree(gpio_dev_t_ptr);
+// }
+
+subsys_initcall(gpio_init); // grazie driver gpio xilinx!!!
+// subsys_initcall(gpio_exit);
 
 /********************* Informazioni associate al modulo ************************/
 MODULE_AUTHOR("Antonio Riccio");
