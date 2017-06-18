@@ -130,12 +130,13 @@ static int gpio_probe(struct platform_device *op)
     // L'identificativo è un valore compreso tra 0 e GPIOS_TO_MANAGE-1
     // Questo identificativo è utilizzato come minor number da assegnare alla periferica
   	ret_status = idr_alloc(&gpio_idr, gpio_device_ptr, 0, GPIOS_TO_MANAGE-1, GFP_KERNEL);
-  	if (ret_status == -ENOSPC) {
-  		printk(KERN_WARNING "Richiesti troppi dispositivi di quanti se ne sono allocati!");
-      kfree(gpio_device_ptr);
-  		return -EINVAL;
-  	}
 	mutex_unlock(&minor_lock);
+
+  if (ret_status == -ENOSPC) {
+    printk(KERN_WARNING "Richiesti troppi dispositivi di quanti se ne sono allocati!");
+    kfree(gpio_device_ptr);
+    return -EINVAL;
+  }
 
   // Crea una struttura dev_t con il primo minor number disponibile
   gpio_device_ptr->gpiox_dev_number = MKDEV(major, ret_status);
