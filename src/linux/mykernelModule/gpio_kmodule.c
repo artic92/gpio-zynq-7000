@@ -228,7 +228,7 @@ static int gpio_probe(struct platform_device *op)
   if(gpio_device_ptr->irq != 0){
     printk(KERN_INFO "[GPIO driver] Gestione dell'interrupt line: %d\n", gpio_device_ptr->irq);
 
-    ret_status = idr_alloc(&gpio_idr, gpio_device_ptr->base_addr, gpio_device_ptr->irq, gpio_device_ptr->irq+1, GFP_KERNEL);
+    ret_status = idr_alloc(&irq_idr, gpio_device_ptr->base_addr, gpio_device_ptr->irq, gpio_device_ptr->irq+1, GFP_KERNEL);
     printk(KERN_INFO "[GPIO driver] Base address memorizzato con ID: %i\n", ret_status);
     if (ret_status == -ENOSPC) {
       printk(KERN_WARNING "Non è possibile allocare nell'idr il puntatore alla zona fisica di memoria!");
