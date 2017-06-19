@@ -1,4 +1,4 @@
-obj-m := gpio_kmodule.o
+obj-m := kmodule.o
 
 KERNEL_SOURCE := /opt/linux-Digilent-Dev/
 PWD := $(shell pwd)

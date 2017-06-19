@@ -529,11 +529,13 @@ static void __exit gpio_exit(void)
 {
   printk(KERN_INFO "[GPIO driver] Deinizializzazione...");
 
-  // TODO DEALLLOCA MUTEX E IDR!!!! spinlock e waitqueue
-
+  platform_driver_unregister(&gpio_driver);
   class_destroy(gpio_class);
   cdev_del(device_cdev_p);
   unregister_chrdev_region(gpiodrv_dev_number, GPIOS_TO_MANAGE-1);
+  mutex_destroy(&minor_lock);
+  idr_destroy(&gpio_idr);
+  idr_destroy(&irq_idr);
 }
 
 // Macro che consentono di definire funzioni che vengono chiamate
