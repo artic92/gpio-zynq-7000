@@ -56,9 +56,9 @@
 /**
  * @brief Struttura dati per la configurazione del dispositivo.
  *
- * L'utilizzatore deve allocare una struttura di questo tipo per poter configurare
- * il dispositivo nella fase di inizializzazione.
- * @see myGpio_init()
+ * @details L'utilizzatore deve allocare una struttura di questo tipo per poter configurare
+ * 		il dispositivo nella fase di inizializzazione.
+ * 		@see myGpio_init()
  *
  */
 typedef struct {
@@ -69,9 +69,10 @@ typedef struct {
 /**
  * @brief Struttura dati del GPIO driver.
  *
- * L'utilizzatore deve allocare una struttura di questo tipo per ogni
- * periferica GPIO che intende gestire. Questo poichè le funzioni nell'API
- * richiedono un puntatore ad una variabile di questo tipo.
+ * @details L'utilizzatore deve allocare una struttura di questo tipo per ogni
+ * 		periferica GPIO che intende gestire. Questo poichè le funzioni nell'API
+ * 		richiedono un puntatore ad una variabile di questo tipo.
+ *
  */
 typedef struct {
 	uint32_t* base_address;	 								///< Indirizzo base della periferica

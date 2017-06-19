@@ -25,7 +25,7 @@
 * @{
 *
 * @details Questo modulo contiene codice che serve a controllare la periferica GPIO
-*		utilizzando il servizio Universal Input/Output offerto dal kernel Linux.
+*		utilizzando il servizio Userspace Input/Output offerto dal kernel Linux.
 *		I driver sono scritti in due varianti che si differenziano per l'uso del
 *		meccanismo delle interruzioni.
 *
@@ -88,10 +88,9 @@ int main(int argc, char *argv[])
 /**
 * @brief Configura l'hardware.
 *
-* @details Questa funzione apre i descrittori dei device file relativi alle periferiche
+* @details Apre i descrittori dei device file relativi alle periferiche
 *		controllate dal modulo UIO, mappa gli indirizzi fisici della periferica con
-*		gli inidirizzi virtuali del processo che ne richiede i servizi e configura
-*		opportunamente la periferica hardware.
+*		gli indirizzi virtuali del processo e configura opportunamente i registri della periferica.
 */
 void setup(void)
 {
@@ -120,7 +119,7 @@ void setup(void)
 	printf("[DEBUG] Mapping degli indirizzi tra indirizzi fisici e virtuali...\n");
 	#endif
 
-	// Mappa gli indirizzi fisici della periferiche con quelli virtuali del processo in esecuzione
+	// Mappa gli indirizzi fisici della periferiche con quelli virtuali del processo
 	// NOTA: questa funzione restituisce indirizzi virtuali DIVERSI a ciascun processo
 	//			 che vuole far uso dei medesimi indirizzi fisici. Questo è possibile solo
 	//			 se il flag MAP_SHARED è settato.

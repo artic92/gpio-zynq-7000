@@ -1,5 +1,5 @@
 /**
-* @file gpio_kmodule.c
+* @file kmodule.c
 * @brief Implementazione del device driver per la periferica GPIO come modulo del Linux kernel.
 * @author: Antonio Riccio
 * @copyright
@@ -13,6 +13,19 @@
 * details. You should have received a copy of the GNU General Public License along
 * with this program; if not, write to the Free Software Foundation, Inc.,
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+*
+* @addtogroup LINUX
+* @{
+*
+* @addtogroup KERNEL_MODULE
+* @{
+*
+* @addtogroup MODULE
+* @{
+*
+* @details In questo modulo è presente la documentazione riguardante il modulo kernel
+*   che gestisce la @ref GPIO. Per maggiori dettagli sul significato di ciascuna istruzione
+*   consultare il codice sorgente opportunamente commentato.
 */
 /***************************** Include Files ********************************/
 #include <linux/init.h>
@@ -41,15 +54,14 @@
 #include <linux/spinlock.h>
 #include <linux/idr.h>
 
-/*
-* @addtogroup LINUX
-* @{
-*/
-#define GPIOS_TO_MANAGE   3           /*< Indica quante periferiche deve gestire il driver
-                                          (o equivalentemente quanti minor number
-                                          instanziare per un dato major number)*/
-#define DRIVER_NAME       "gpiodrv"
+/************************** Constant Definitions *****************************/
+#define GPIOS_TO_MANAGE   3           ///< Indica quante periferiche deve gestire il driver
+                                      ///<  (o equivalentemente quanti minor number
+                                      ///<  istanziare per un dato major number)
 
+#define DRIVER_NAME       "gpiodrv"   ///< Nome con il quale il driver si registra presso il kernel
+
+//TODO QUI METTERE UN ENUMERAZIONE!!!!
 #define NO 0
 #define YES 1
 
@@ -61,39 +73,45 @@
 #define GPIO_ISR_OFFSET  20
 #define INT_ENABLE 0x0000000F
 
-/* @brief Instanzia una struttura idr.
- *
- * @details La struttura dati idr è utilizzata nel kernel per gestire assegnazioni di identificativi
- *    ad ogetti e consentirne l'indirizzamento attraverso questi identificativi.
- *    Per approfondimenti si veda: https://lwn.net/Articles/103209/
+/*
+ *  La struttura dati idr è utilizzata nel kernel per gestire assegnazioni di identificativi
+ *  ad ogetti e consentirne l'indirizzamento attraverso questi identificativi.
+ *  Per approfondimenti si veda: https://lwn.net/Articles/103209/
  */
-static DEFINE_IDR(gpio_idr);
+static DEFINE_IDR(gpio_idr);        ///< Istanzia una struttura idr.
+static DEFINE_IDR(irq_idr);         ///< Istanzia una struttura idr.
 
-static DEFINE_IDR(irq_idr);
-
-/* @brief Crea un semaforo binario per l'accesso alla struttura dati idr.
- *
- * @details E' necessario serializzare l'accesso alla struttura dati idr
- *    per evitare collisioni, dal momento che il driver può avere più istanze
- *    diverse perchè può gestire più dispositivi contemporaneamente.
+/*
+ *  E' necessario serializzare l'accesso alla struttura dati idr
+ *  per evitare collisioni, dal momento che il driver può avere più istanze
+ *  diverse perchè può gestire più dispositivi contemporaneamente.
  */
-static DEFINE_MUTEX(minor_lock);
+static DEFINE_MUTEX(minor_lock);    ///< Crea un semaforo binario per l'accesso alla struttura dati gpio_idr.
 
 // Dati globali a supporto del driver
 struct class *gpio_class;
 struct cdev *device_cdev_p;
-dev_t gpiodrv_dev_number;
 int major;
-spinlock_t read_lock;
-wait_queue_head_t rdqueue;
-int can_read = NO;
 
+dev_t gpiodrv_dev_number;   ///< Struttura che conserva i device numbers del driver
+spinlock_t read_lock;       ///< Spinlock utilizzato per gestire l'accesso alla variabile CAN_READ
+wait_queue_head_t rdqueue;  ///< Wait queue sulla quale i processi si bloccano quando viene richiesta una lettura
+int can_read = NO;          ///< Variabile di sincronizzazione tra ISR e processo di lettura
+
+/**************************** Type Definitions ******************************/
+/**
+ * @brief Struttura dati per la gestione del singolo dispositivo GPIO.
+ *
+ * @details Il driver crea una struttura di questo tipo per ogni dispositivo
+ *    presente nel sistema.
+ *
+ */
 struct gpio_device{
-  dev_t gpiox_dev_number;
-  struct resource res;
-  unsigned int irq;
-  unsigned long *base_addr;
-  spinlock_t write_lock;
+  unsigned long *base_addr; ///< Indirizzo (virtuale) base della periferica
+  unsigned int irq;         ///< Numero di interruzione (se la periferica genera interruzioni, altrimenti non è specificato)
+  struct resource res;      ///< Struttura dati popolata da informazioni estratte dal device-tree
+  dev_t gpiox_dev_number;   ///< Device numbers della periferica (ogni periferica ha un minor number diverso)
+  spinlock_t write_lock;    ///< Spinlock per garantire l'accesso in mutua esclusione all'operazione di scrittura
 };
 
 /************************** Function Prototypes *****************************/
@@ -103,22 +121,33 @@ ssize_t gpio_read(struct file *, char __user *, size_t, loff_t *);
 ssize_t gpio_write(struct file *, const char __user *, size_t, loff_t *);
 static irqreturn_t gpio_isr(int irq, struct pt_regs * regs);
 
-// Operazioni supportate dal driver
+/**
+ * @brief Operazioni supportate dal driver.
+ *
+ * @details Ogni driver Linux deve implementare tutti o parte dei metodi dell'interfaccia
+ *    del VFS per consentire ai processi user-space di accedere alla periferica.
+ *
+ */
 static struct file_operations gpio_fops = {
-		.owner    =   THIS_MODULE,     	/* Owner */
-    .read     =   gpio_read,        /* Read method */
-    .write    =   gpio_write,       /* Write method */
-		.open     =   gpio_open,        /* Open method */
-		.release  =   gpio_release      /* Release method */
+		.owner    =   THIS_MODULE,     	///< Proprietario
+    .read     =   gpio_read,        ///< Metodo per la lettura
+    .write    =   gpio_write,       ///< Metodo per la lettura
+		.open     =   gpio_open,        ///< Metodo per l'apertura del device file
+		.release  =   gpio_release      ///< Metodo per il rilascio del file aperto legato al device file
 };
 
-/*
- * @brief Chiamata dal kernel quando esiste un device la cui descrizione nel device-tree
+/**
+ * @brief Funzione di probing.
+ *
+ * @details Chiamata dal kernel quando esiste un device la cui descrizione nel device-tree
  *    coincide con quella esportata dal modulo attraverso la macro module_platform_driver.
  *
- * @param op
+ * @param op struttura che contiene informazioni utili all'inizializzazione del device
+ *    come ad esempio le informazioni provenineti dal device-tree.
  *
  * @return
+ *    - 0 se il procedimento di probing è andato a buon fine.
+ *    - errno se il procedimento di probing non è andato a buon fine.
  */
 static int gpio_probe(struct platform_device *op)
 {
@@ -137,7 +166,7 @@ static int gpio_probe(struct platform_device *op)
   spin_lock_init(&gpio_device_ptr->write_lock);
 
   mutex_lock(&minor_lock);
-    // Richiede l'allocazione nell'idr del dispositivo gpio_device_ptr
+    // Richiede l'allocazione nell'idr del puntatore al dispositivo gpio_device_ptr
     // La funzione restituisce l'identificativo dell'oggetto nella struttura dati
     // L'identificativo è un valore compreso tra 0 e GPIOS_TO_MANAGE-1
     // Questo identificativo è utilizzato come minor number da assegnare alla periferica
@@ -150,7 +179,7 @@ static int gpio_probe(struct platform_device *op)
     return -EINVAL;
   }
 
-  // Crea una struttura dev_t con il primo minor number disponibile
+  // Crea una struttura dev_t con il major number del driver ed il primo minor number disponibile
   gpio_device_ptr->gpiox_dev_number = MKDEV(major, ret_status);
 
   /********************* Creazione del device file ***********************************/
@@ -180,10 +209,10 @@ static int gpio_probe(struct platform_device *op)
     return -1;
   }
 
-  // Restituisce informazioni riguardante la parte relativa alle interruzioni.
-  // In particolare ricerca il primo tag interrupts e ne restituisce l'irq.
-  // Il terzo parametro indica quale tag interrupts considerare (se ce ne sono
-  // più di uno). In questo caso viene considerato il primo.
+  // Restituisce informazioni riguardante la parte relativa alle interruzioni
+  // In particolare ricerca il primo tag interrupts e ne restituisce l'irq
+  // Il secondo parametro indica quale tag interrupts considerare (se ce ne sono
+  // più di uno). In questo caso viene considerato il primo
   // Esempio: interrupts = <0 29 4> -> irq_of_parse_and_map restituirà 29
   gpio_device_ptr->irq = irq_of_parse_and_map(op->dev.of_node, 0);
 
@@ -224,12 +253,14 @@ static int gpio_probe(struct platform_device *op)
   }
 
   /*************** Richiesta e registrazione di un interrupt handler *****************/
-  // Se il dispositivo supporta le interruzioni
+  // La registrazione avviene solo se il dispositivo supporta le interruzioni
   if(gpio_device_ptr->irq != 0){
     printk(KERN_INFO "[GPIO driver] Gestione dell'interrupt line: %d\n", gpio_device_ptr->irq);
 
+    // Associa nell'idr la coppia IRQ -> base_addr
     ret_status = idr_alloc(&irq_idr, gpio_device_ptr->base_addr, gpio_device_ptr->irq, gpio_device_ptr->irq+1, GFP_KERNEL);
     printk(KERN_INFO "[GPIO driver] Base address memorizzato con ID: %i\n", ret_status);
+
     if (ret_status == -ENOSPC) {
       printk(KERN_WARNING "Non è possibile allocare nell'idr il puntatore alla zona fisica di memoria!");
       release_mem_region(gpio_device_ptr->res.start, resource_size(&gpio_device_ptr->res));
@@ -240,6 +271,8 @@ static int gpio_probe(struct platform_device *op)
       kfree(gpio_device_ptr);
       return -EINVAL;
     }
+
+    // Registrazione di un ISR per l'irq numero gpio_device_ptr->irq
     ret_status = request_irq(gpio_device_ptr->irq, (irq_handler_t) gpio_isr, 0, DRIVER_NAME, NULL);
     if(ret_status){
       printk(KERN_WARNING "Cannot get interrupt line %d\n", gpio_device_ptr->irq);
@@ -261,6 +294,18 @@ static int gpio_probe(struct platform_device *op)
   return 0;
 }
 
+/**
+ * @brief Funzione di rimozione.
+ *
+ * @details Chiamata dal kernel quando un dispositivo non è più presnete nel sistema.
+ *    Dealloca tutte le strutture dati allocate in precedenza per gestire il particolare device.
+ *
+ * @param op struttura che contiene informazioni utili all'deallocazione del device
+ *
+ * @return
+ *    - 0 se il procedimento di rimozione è andato a buon fine.
+ *    - errno se il procedimento di probing non è andato a buon fine.
+ */
 static int gpio_remove(struct platform_device *op)
 {
   printk(KERN_INFO "[GPIO driver] Rimozione strutture dati per il singolo device...\n");
@@ -279,15 +324,17 @@ static int gpio_remove(struct platform_device *op)
   return 0;
 }
 
-/*
+/**
  * @brief Chiamata dal kernel quando un processo apre il device file relativo alla periferica.
  *
- * @param inode è l'inode relativo al device file. Contiene il major ed il minor number associato
- *    associato al driver della periferica.
+ * @param inode è l'inode relativo al device file. Contiene il major ed il minor number
+ *    alla particolare periferica.
  * @param filp è il puntatore ad una struttura struct file che viene creata per ogni processo
  *    che apre il device file.
  *
  * @return
+ *    - 0 se il procedimento di apertura è andato a buon fine.
+ *    - errno se il procedimento di apertura non è andato a buon fine.
  */
 static int gpio_open(struct inode *inode, struct file *filp)
 {
@@ -297,8 +344,7 @@ static int gpio_open(struct inode *inode, struct file *filp)
   printk(KERN_INFO "[GPIO driver] Minor number associato alla periferica %i\n", iminor(inode));
 
   mutex_lock(&minor_lock);
-    // Interroga la struttura dati idr per ottenere l'oggetto identificato con il
-    // minor number assegnato alla periferica
+    // Interroga la struttura dati idr per ottenere il puntatore al device identificato dal suo minor number
     // Il minor number è presente nell'inode del device file
     gpio_dev_ptr = idr_find(&gpio_idr, iminor(inode));
   mutex_unlock(&minor_lock);
@@ -308,13 +354,12 @@ static int gpio_open(struct inode *inode, struct file *filp)
     return -ENODEV;
   }
 
-  // Associa l'oggetto appena ottenuto alla struttura file creata dal kernel
-  // all'atto dell'apertura dell'inode
+  // Associa il puntatore appena ottenuto alla struttura file creata dal kernel
   filp->private_data = gpio_dev_ptr;
   return 0;
 }
 
-/*
+/**
  * @brief Chiamata dal kernel quando il device file viene chiuso da tutti i processi che
  *    lo avevano in precedenza aperto.
  *
@@ -324,6 +369,8 @@ static int gpio_open(struct inode *inode, struct file *filp)
  *    che apre il device file.
  *
  * @return
+ *    - 0 se il procedimento di release è andato a buon fine.
+ *    - errno se il procedimento di release non è andato a buon fine.
  */
 static int gpio_release(struct inode *inode, struct file *filp)
 {
@@ -331,19 +378,22 @@ static int gpio_release(struct inode *inode, struct file *filp)
   return 0;
 }
 
-/*
- * @brief Chiamata dal kernel ogni volta che si legge dal device file. La lettura è bloccante.
+/**
+ * @brief Chiamata dal kernel ogni volta che un processo legge dal device file. La lettura è bloccante.
  *
  * @param filp è il puntatore ad una struttura struct file che viene creata per ogni processo
  *    che apre il device file.
  * @param buf è un puntatore ad un buffer nel quale il processo user-space chiamante andrà a
  *    leggere una volta terminata l'operazione.
  * @param count è la dimensione del buffer buf.
- * @param offp
+ * @param offp è lo spiazzamento all'interno del file.
  *
  * @return
+ *    - count se il procedimento di lettura è andato a buon fine.
+ *    - errno se il procedimento di lettura non è andato a buon fine.
  *
- * @warning L'accesso al buffer non può essere diretto ma mediato attraverso la Funzione
+ * @note
+ *    L'accesso al buffer non può essere diretto ma mediato attraverso la funzione
  *    copy_to_user per motivi di portabilità.
  */
 ssize_t gpio_read(struct file *filp, char __user *buf, size_t count, loff_t *offp)
@@ -366,32 +416,40 @@ ssize_t gpio_read(struct file *filp, char __user *buf, size_t count, loff_t *off
   }
   printk(KERN_DEBUG "Awoken %i (%s)\n", current->pid, current->comm);
 
+  // Lettura del dato alla periferica
   valore = ioread8(gpio_dev_t_ptr->base_addr + (GPIO_DIN_OFFSET/4));
 
   spin_lock_irq(&read_lock);
     can_read = NO;
   spin_unlock_irq(&read_lock);
 
+  // Passaggio al processo user-space del dato appena letto
   if(copy_to_user(buf, &valore, 1) != 0){
     printk(KERN_WARNING "[GPIO driver] Problema nella copia dei dati al processo user-space!\n");
     return -EFAULT;
   }
 
   printk(KERN_INFO "[GPIO driver] Carettere letto: %08x\n", valore);
-  return 1;
+  return 1; //TODO DEVE RITORNARE COUNT
 }
 
-/*
- * @brief Chiamata dal kernel ogni volta che si scrive sul device file.
+/**
+ * @brief Chiamata dal kernel ogni volta che un processo scrive sul device file.
  *
  * @param filp è il puntatore ad una struttura struct file che viene creata per ogni processo
  *    che apre il device file.
  * @param buf è un puntatore ad un buffer nel quale il processo user-space ha inserito
  *    i dati da scrivere.
  * @param count è la dimensione del buffer buf.
- * @param offp
+ * @param offp è lo spiazzamento all'interno del file.
  *
  * @return
+ *    - count se il procedimento di scrittura è andato a buon fine.
+ *    - errno se il procedimento di scrittura non è andato a buon fine.
+ *
+ * @note
+ *    L'accesso alla periferica è gestito attraverso uno spinlock per garantire
+ *    mutua esclusione.
  */
 ssize_t gpio_write(struct file *filp, const char __user *buf, size_t count, loff_t *offp)
 {
@@ -416,9 +474,21 @@ ssize_t gpio_write(struct file *filp, const char __user *buf, size_t count, loff
   spin_unlock_irqrestore(&gpio_dev_t_ptr->write_lock, flags);
 
   printk(KERN_INFO "[GPIO driver] Valore scritto %08x\n", valore);
-  return 1;
+  return 1; //TODO DEVE RITORNARE COUNT
 }
 
+/**
+ * @brief ISR della periferica.
+ *
+ * @param irq è l'irq number della linea di interruzione.
+ * @param regs è un puntatore ad una struttura pt_regs che contiene i valori dei
+ *    registri del processore all'atto dell'interruzione.
+ *
+ * @return
+ *    - IRQ_HANDLED se l'interruzione è stata servita correttamente.
+ *    - errno se l'interruzione non è stata servita correttamente.
+ *
+ */
 static irqreturn_t gpio_isr(int irq, struct pt_regs * regs)
 {
   uint32_t pending_interrupt;
@@ -437,11 +507,11 @@ static irqreturn_t gpio_isr(int irq, struct pt_regs * regs)
   pending_interrupt = ioread32(gpio_base_addr_ptr + (GPIO_ISR_OFFSET/4));
   iowrite32(pending_interrupt, gpio_base_addr_ptr + (GPIO_ICL_OFFSET/4));
 
+  // Sblocca eventuali processi in attesa di leggere
   spin_lock_irqsave(&read_lock, flags);
     can_read = YES;
   spin_unlock_irqrestore(&read_lock, flags);
 
-  // Sblocca eventuali processi in attesa di leggere
   printk(KERN_INFO "Process %i (%s) awakening the readers...\n", current->pid, current->comm);
   wake_up_interruptible(&rdqueue);
 
@@ -474,9 +544,14 @@ static struct platform_driver gpio_driver = {
 		},
 };
 
-/************************** Funzioni di inizializzazione *************************/
-// Queste funzioni effettuano operazioni che devono essere svolte solo all'atto
-// dell'inserimento del modulo
+/********************* Funzioni di inizializzazione del modulo *************************/
+/**
+ * @brief Operazioni svolte all'atto dell'inserimento del modulo.
+ *
+ * @return
+ *    - 0 se il procedimento è andato a buon fine.
+ *    - errno se il procedimento non è andato a buon fine.
+ */
 static int __init gpio_init(void)
 {
   int ret_status;
@@ -498,6 +573,7 @@ static int __init gpio_init(void)
     return ret_status;
   }
 
+  // Richiede al kernel il primo major number disponibile
   major = MAJOR(gpiodrv_dev_number);
 
   // Aggiorna il device driver model con GPIOS_TO_MANAGE-1 dispositivi
@@ -508,7 +584,7 @@ static int __init gpio_init(void)
     return ret_status;
   }
 
-
+  /******************** Registrazione class structure ************************/
   // Crea una struct class associata al driver
   gpio_class = class_create(THIS_MODULE, DRIVER_NAME);
   if(!gpio_class){
@@ -522,9 +598,15 @@ static int __init gpio_init(void)
   init_waitqueue_head(&rdqueue);
 
   printk(KERN_INFO "[GPIO driver] Fine fase di inizializzazione...");
-  return platform_driver_register(&gpio_driver);;
+  // Da questo punto in avanti ogni periferica che risulta compatibile
+  // con il driver verrà inizializzata attraverso la funzione probe
+  return platform_driver_register(&gpio_driver);; //TODO DOPPIO PUNTO E VIRGOLA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
+/**
+ * @brief Operazioni svolte all'atto della rimozione del modulo.
+ *
+ */
 static void __exit gpio_exit(void)
 {
   printk(KERN_INFO "[GPIO driver] Deinizializzazione...");
@@ -548,4 +630,6 @@ module_exit(gpio_exit);
 MODULE_AUTHOR("Antonio Riccio");
 MODULE_DESCRIPTION("Modulo kernel per l'accesso ad una periferica GPIO su Zynq 7000");
 MODULE_LICENSE("GPL");
+/** @} */
+/** @} */
 /** @} */

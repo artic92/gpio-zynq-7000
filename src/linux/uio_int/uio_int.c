@@ -21,8 +21,8 @@
 * @addtogroup UIO_INTERRUPT
 * @{
 *
-* @details Questo modulo contiene driver per la periferica @ref GPIO che fanno uso
-* 	del servizio Universal Input/Output offerto dal kernel Linux. Il driver utilizza
+* @details Questo modulo contiene un driver per la periferica @ref GPIO che fa uso
+* 	del servizio Userspace Input/Output offerto dal kernel Linux. Il driver utilizza
 *		il meccanismo delle interruzioni per le proprie operazioni.
 */
 /** @} */
@@ -56,9 +56,10 @@ void loop(void);
 */
 /**
 * @details Questa applicazione fa uso del meccanismo delle interruzioni per implementare
-* un contatore. Ogni volta che viene alzato uno switch/premuto un pulsante
-* il contatore viene incrementato di un valore pari al valore in binario della
-* configurazione dei pulsanti o degli switch.
+* 		un contatore. Ogni volta che viene alzato uno switch/premuto un pulsante
+* 		il contatore viene incrementato di un valore pari al valore in binario della
+* 	configurazione dei pulsanti o degli switch.
+*
 */
 int main(int argc, char *argv[])
 {
@@ -71,7 +72,7 @@ int main(int argc, char *argv[])
 	for(;;) loop();
 
 	// Unmapping degli indirizzi fisici della periferiche con quelli
-	// virtuali del processo in esecuzione
+	// virtuali del processo
 	munmap(led_base_addr, GPIO_MAP_SIZE);
 	munmap(swt_base_addr, GPIO_MAP_SIZE);
 
@@ -84,10 +85,10 @@ int main(int argc, char *argv[])
 /**
 * @brief Configura l'hardware.
 *
-* @details Questa funzione apre i descrittori dei device file relativi alle periferiche
+* @details Apre i descrittori dei device file relativi alle periferiche
 *		controllate dal modulo UIO, mappa gli indirizzi fisici della periferica con
-*		gli inidirizzi virtuali del processo che ne richiede i servizi e configura
-*		opportunamente la periferica hardware.
+*		gli indirizzi virtuali del processo e configura opportunamente i registri della periferica.
+*
 */
 void setup(void)
 {
@@ -116,7 +117,7 @@ void setup(void)
 	printf("[DEBUG] Mapping degli indirizzi tra indirizzi fisici e virtuali...\n");
 	#endif
 
-	// Mappa gli indirizzi fisici della periferiche con quelli virtuali del processo in esecuzione
+	// Mappa gli indirizzi fisici della periferiche con quelli virtuali del processo
 	// NOTA: questa funzione restituisce indirizzi virtuali DIVERSI a ciascun processo
 	//			 che vuole far uso dei medesimi indirizzi fisici. Questo è possibile solo
 	//			 se il flag MAP_SHARED è settato.
@@ -157,6 +158,7 @@ void setup(void)
 /**
 * @brief Legge il valore degli switch con una chiamata bloccante e riporta
 * 	il loro stato sui LED.
+*
 */
 void loop(void)
 {

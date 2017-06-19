@@ -1,5 +1,5 @@
 /**
-* @file user_space_driver.c
+* @file driver.c
 * @brief Applicazione che usa il modulo kernel per il controllo della periferica GPIO.
 * @author: Antonio Riccio
 * @copyright
@@ -14,7 +14,19 @@
 * if not, write to the Free Software Foundation, Inc.,
 * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
+* @addtogroup LINUX
+* @{
+*
+* @addtogroup KERNEL_MODULE
+* @{
+*
+* @addtogroup DRIVER
+* @{
+*
+* @details Questo modulo contiene codice che serve a controllare la periferica GPIO
+*		mediante il servizio offerto dal modulo kernel sviluppato.
 */
+/** @} */
 /** @} */
 /** @} */
 /***************************** Include Files ********************************/
@@ -44,6 +56,9 @@ void loop(void);
 *
 * @addtogroup KERNEL_MODULE
 * @{
+*
+* @addtogroup DRIVER
+* @{
 */
 /**
 * @details Questa applicazione fa uso del meccanismo delle interruzioni per implementare
@@ -71,10 +86,9 @@ int main(int argc, char *argv[])
 /**
 * @brief Configura l'hardware.
 *
-* @details Questa funzione apre i descrittori dei device file relativi alle periferiche
-*		controllate dal modulo UIO, mappa gli indirizzi fisici della periferica con
-*		gli inidirizzi virtuali del processo che ne richiede i servizi e configura
-*		opportunamente la periferica hardware.
+* @details Apre i descrittori dei device file relativi alle periferiche,
+*		mappa gli indirizzi fisici della periferica con gli indirizzi virtuali
+*		del processo e configura opportunamente i registri della periferica.
 */
 void setup(void)
 {
@@ -137,5 +151,6 @@ void loop(void)
 		exit(EXIT_FAILURE);
 	}
 }
+/** @} */
 /** @} */
 /** @} */
