@@ -61,7 +61,7 @@ void loop(void);
 */
 /**
 * @details Esegue un test di funzionamento accendendo e spegnendo i LED in base
-* allo stato degli switch o dei pulsanti.
+* 	allo stato degli switch o dei pulsanti.
 */
 int main(int argc, char *argv[])
 {
