@@ -61,7 +61,6 @@
 
 #define DRIVER_NAME       "gpiodrv"   ///< Nome con il quale il driver si registra presso il kernel
 
-//TODO QUI METTERE UN ENUMERAZIONE!!!!
 #define NO 0
 #define YES 1
 
@@ -168,9 +167,9 @@ static int gpio_probe(struct platform_device *op)
   mutex_lock(&minor_lock);
     // Richiede l'allocazione nell'idr del puntatore al dispositivo gpio_device_ptr
     // La funzione restituisce l'identificativo dell'oggetto nella struttura dati
-    // L'identificativo è un valore compreso tra 0 e GPIOS_TO_MANAGE-1
+    // L'identificativo è un valore compreso tra 0 e GPIOS_TO_MANAGE
     // Questo identificativo è utilizzato come minor number da assegnare alla periferica
-  	ret_status = idr_alloc(&gpio_idr, gpio_device_ptr, 0, GPIOS_TO_MANAGE-1, GFP_KERNEL);
+  	ret_status = idr_alloc(&gpio_idr, gpio_device_ptr, 0, GPIOS_TO_MANAGE, GFP_KERNEL);
 	mutex_unlock(&minor_lock);
 
   if (ret_status == -ENOSPC) {
@@ -430,7 +429,7 @@ ssize_t gpio_read(struct file *filp, char __user *buf, size_t count, loff_t *off
   }
 
   printk(KERN_INFO "[GPIO driver] Carettere letto: %08x\n", valore);
-  return 1; //TODO DEVE RITORNARE COUNT
+  return count;
 }
 
 /**
@@ -474,7 +473,7 @@ ssize_t gpio_write(struct file *filp, const char __user *buf, size_t count, loff
   spin_unlock_irqrestore(&gpio_dev_t_ptr->write_lock, flags);
 
   printk(KERN_INFO "[GPIO driver] Valore scritto %08x\n", valore);
-  return 1; //TODO DEVE RITORNARE COUNT
+  return count;
 }
 
 /**
@@ -566,8 +565,8 @@ static int __init gpio_init(void)
   device_cdev_p->owner = THIS_MODULE;
 
   // Alloca dinamicamente il primo range di device driver numbers diponibile
-  // I minor number vanno da 0 a GPIOS_TO_MANAGE-1
-  ret_status = alloc_chrdev_region(&gpiodrv_dev_number, 0, GPIOS_TO_MANAGE-1, DRIVER_NAME);
+  // I minor number vanno da 0 a GPIOS_TO_MANAGE
+  ret_status = alloc_chrdev_region(&gpiodrv_dev_number, 0, GPIOS_TO_MANAGE, DRIVER_NAME);
   if(ret_status < 0){
     printk(KERN_WARNING "Allocazione device numbers non riuscita!");
     return ret_status;
@@ -576,11 +575,11 @@ static int __init gpio_init(void)
   // Richiede al kernel il primo major number disponibile
   major = MAJOR(gpiodrv_dev_number);
 
-  // Aggiorna il device driver model con GPIOS_TO_MANAGE-1 dispositivi
-  ret_status = cdev_add(device_cdev_p, gpiodrv_dev_number, GPIOS_TO_MANAGE-1);
+  // Aggiorna il device driver model con GPIOS_TO_MANAGE dispositivi
+  ret_status = cdev_add(device_cdev_p, gpiodrv_dev_number, GPIOS_TO_MANAGE);
   if(ret_status < 0){
     printk(KERN_WARNING "Registrazione del driver non riuscita!");
-    unregister_chrdev_region(gpiodrv_dev_number, GPIOS_TO_MANAGE-1);
+    unregister_chrdev_region(gpiodrv_dev_number, GPIOS_TO_MANAGE);
     return ret_status;
   }
 
@@ -590,7 +589,7 @@ static int __init gpio_init(void)
   if(!gpio_class){
     printk(KERN_INFO "Cannot create device class\n");
     cdev_del(device_cdev_p);
-    unregister_chrdev_region(gpiodrv_dev_number, GPIOS_TO_MANAGE-1);
+    unregister_chrdev_region(gpiodrv_dev_number, GPIOS_TO_MANAGE);
     return -EFAULT;
   }
 
@@ -600,7 +599,7 @@ static int __init gpio_init(void)
   printk(KERN_INFO "[GPIO driver] Fine fase di inizializzazione...");
   // Da questo punto in avanti ogni periferica che risulta compatibile
   // con il driver verrà inizializzata attraverso la funzione probe
-  return platform_driver_register(&gpio_driver);; //TODO DOPPIO PUNTO E VIRGOLA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  return platform_driver_register(&gpio_driver);
 }
 
 /**
@@ -614,7 +613,7 @@ static void __exit gpio_exit(void)
   platform_driver_unregister(&gpio_driver);
   class_destroy(gpio_class);
   cdev_del(device_cdev_p);
-  unregister_chrdev_region(gpiodrv_dev_number, GPIOS_TO_MANAGE-1);
+  unregister_chrdev_region(gpiodrv_dev_number, GPIOS_TO_MANAGE);
   mutex_destroy(&minor_lock);
   idr_destroy(&gpio_idr);
   idr_destroy(&irq_idr);
