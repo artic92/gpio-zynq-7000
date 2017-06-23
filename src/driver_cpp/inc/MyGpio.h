@@ -1,7 +1,6 @@
 /**
 * @file MyGpio.h
 * @brief Versione C++ del driver per la periferica GPIO.
-* @anchor GPIO
 * @author: Antonio Riccio, Andrea Scognamiglio, Stefano Sorrentino
 * @copyright
 * Copyright 2017 Antonio Riccio <antonio.riccio.27@gmail.com>, <antonio.riccio9@studenti.unina.it>.
@@ -17,10 +16,9 @@
 *
 * @addtogroup API_CPP
 * @{
-* @details
 *
-* Questo modulo contiene la versione C++ delle API software per il device driver
-* della periferica General Purpose I/O (@ref GPIO).
+* @brief Questo modulo contiene la versione C++ delle API software per il device driver
+* 		della periferica General Purpose I/O (@ref GPIO).
 *
 */
 /*****************************************************************************/
@@ -36,10 +34,19 @@
 
 class MyGpio {
 public:
+	/**
+	* @brief Costruttore. Inizializza l'ogetto MyGpio.
+	*
+	* @param base_address è il puntatore all'indirizzo base della periferica.
+	* @param interrupt_support è una costante che specifica se la periferica supporta le interruzioni.
+	*   Se il valore è INT_ENABLED le interruzioni sono supportate dalla periferica, se il valore
+	*   è INT_DISABLED le interruzioni non sono supportate dalla periferica.
+	*
+	*/
 	MyGpio(uint32_t* base_address, interrupt interrupt_support);
 
   /**
-   * @name Funzioni di configurazione
+   * @name Metodi di configurazione
    * @{
    */
 	void setDataDirection(uint32_t gpio_pin_mask, gpio_mode direction);
@@ -47,7 +54,7 @@ public:
   /* @} */
 
   /**
-   * @name Funzioni per le operazioni di I/O
+   * @name Metodi per le operazioni di I/O
    * @{
    */
 	uint32_t read_value();
@@ -56,7 +63,7 @@ public:
   /* @} */
 
   /**
-   * @name Funzioni per la gestione delle interruzioni
+   * @name Metodi per la gestione delle interruzioni
    * @{
    */
 	void interruptEnable(uint32_t mask);
@@ -73,9 +80,10 @@ private:
 };
 
 /**
- * @example MyGpio_test.c
+ * @example MyGpio_test.cpp
  * @name Funzioni di testing
  */
 void MyGpio_test();
 
 #endif /* SRC_MYGPIO_H_ */
+/** @} */

@@ -232,3 +232,4 @@ uint32_t MyGpio::interruptGetStatus()
 
   return gpio_read_mask(this->base_address, GPIO_ISR_OFFSET);
 }
+/** @} */

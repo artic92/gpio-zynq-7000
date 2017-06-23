@@ -33,12 +33,12 @@
  * @brief Spiazzamenti da utilizzare per l'accesso ai registri della periferica
  * @{
  */
-#define GPIO_DOUT_OFFSET  0
-#define GPIO_DIN_OFFSET   8
-#define GPIO_TRI_OFFSET   4
-#define GPIO_IER_OFFSET  12
-#define GPIO_ICL_OFFSET  16
-#define GPIO_ISR_OFFSET  20
+#define GPIO_DOUT_OFFSET  0       ///< Registro per i dati in scrittura
+#define GPIO_DIN_OFFSET   8       ///< Registro per i dati in lettura
+#define GPIO_TRI_OFFSET   4       ///< Registro per il settaggio della modalità in lettura/scrittura
+#define GPIO_IER_OFFSET  12       ///< Registro per l'abilitazione alle interruzioni
+#define GPIO_ICL_OFFSET  16       ///< Registro per l'acknoledge delle interruzioni
+#define GPIO_ISR_OFFSET  20       ///< Registro per la lettura delle interruzioni pending
 /* @} */
 
 /**
