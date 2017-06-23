@@ -77,7 +77,7 @@ typedef struct {
 typedef struct {
 	uint32_t* base_address;	 								///< Indirizzo base della periferica
 	enum_ready isReady;		         					///< Periferica inizializzata e pronta
-	interrupt interrupt_support;	 	///< Se è presente il supporto alle interruzioni
+	interrupt interrupt_support;	 					///< Se è presente il supporto alle interruzioni
 } myGpio_t;
 
 /************************** Function Prototypes *****************************/

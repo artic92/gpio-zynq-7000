@@ -156,6 +156,9 @@ void myGpio_toggle(myGpio_t* instance_ptr, uint32_t register_offset, uint32_t ma
   assert(instance_ptr != NULL);
   // Verifica che il dispositivo è pronto e funzionante
   assert(instance_ptr->isReady == COMPONENT_READY);
+  // Verifica che l'offset sia compreso nello spazio di indirizzamento della periferica
+  assert(register_offset >= 0);
+  assert(register_offset <= 20);
 
   gpio_toggle_bit(instance_ptr->base_address, register_offset, mask);
 }
@@ -263,7 +266,7 @@ uint32_t myGpio_interruptGetEnabled(myGpio_t* instance_ptr)
 * @note Lo stato dell'interruzione indica lo stato della linea associata
 * al pin indipendentemente dal fatto che l'interruzione per quel pin sia stata abilitata o meno.
 *
-*****************************************************************************/
+*/
 uint32_t myGpio_interruptGetStatus(myGpio_t* instance_ptr)
 {
   // Verifica che il puntatore alla struttura dati non sia nullo
