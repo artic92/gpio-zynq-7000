@@ -52,7 +52,6 @@
 \frontmatter
 \maketitle
 \setcounter{page}{1}
-%\tableofcontents
 \mainmatter
 \chapter*{GPIO}
 Il progetto consiste  nella realizzazione di un componente GPIO, \textit{General Purpose Input/Output},  dalla descrizione hardware in VHDL fino alla definizione dei relativi driver a diversi livelli di astrazione.
@@ -105,16 +104,21 @@ L'introduzione di un secondo livello è nata dalla necessità di riusare il codi
 
 Si rimanda alla documentazione interna allegata per ulteriori approfondimenti riguardo le API.
 
+\subsection*{Variante in C++}
+Una versione in C++ dello stesso driver \textit{standalone} è stata sviluppata con l'intento di studiarne le differenze rispetto a quello scritto in C.
+ 
+Una differenza che si può subito notare è come il C++ consenta di utilizzare i servizi offerti dal driver senza specificare, ad ogni chiamata di funzione,  la particolare periferica sulla quale agire. 
+Questo perché le informazioni riguardanti lo specifico componente sono racchiuse all'interno di un oggetto, sul quale è possibile invocare i metodi della classe a cui appartiene poiché un oggetto rappresenta un'\textit{istanza} di quella classe.
+
+E' possibile definire oggetti anche nel C attraverso il meccanismo delle strutture con l'unica differenza che non esiste la caratteristica di oggetto inteso istanza di una data classe, pertanto questa associazione deve essere necessariamente esplicitata dal programmatore, ovvero specificando l'oggetto particolare ad ogni chiamata di funzione. 
+
 \subsection*{Linux}
 Il dispositivo è corredato anche di driver scritti per il kernel Linux. In particolare, sono state sviluppate diverse varianti di driver ognuna delle quali utilizza un servizio diverso del kernel per interfacciarsi con il dispositivo, ovvero attraverso la system call \textit{mmap} ed attraverso  il servizio \textit{Userspace Input/Output} o UIO.
 
 Un'ulteriore versione del driver è stata sviluppata come modulo del kernel. Questa è sicuramente la versione più sofisticata delle soluzioni fin ora citate poiché richiede un'ampia conoscenza delle strutture dati e delle funzioni di basso livello del Linux kernel. Infatti lo sviluppo di questa versione ha richiesto molto più tempo rispetto alle versioni precedentemente enunciate.
-
 Uno degli obiettivi prefissati per lo sviluppo di questo driver è stato quello della \textbf{generalità}: il driver è stato scritto tenendo in mente la necessità di gestire tutte le operazioni possibili sul dispositivo, ovvero operazioni di lettura e di scrittura. 
-
 Altro vincolo fondamentale è stato quello di voler gestire contemporaneamente più dispositivi (funzionanti anche in diverse modalità, ovvero lettura e/o scrittura) e quindi trattare tutti quei problemi di concorrenza che ne sono associati.
-
-Per motivi di brevità non è stato possibile illustrare nel dettaglio il funzionamento di quest'ultima versione in questo documento, pertanto si rimanda al codice sorgente, accuratamente commentato, per approfondimenti riguardanti il funzionamento nel dettaglio.
+La spiegazione nel dettaglio del funzionamento di quest'ultima versione esula dagli scopi di questo documento, pertanto si rimanda al codice sorgente, accuratamente commentato, per approfondimenti riguardanti il significato delle singole istruzioni.
 \section*{Sviluppi futuri}
 Questa sezione è stata scritta con l'intento di illustrare possibili miglioramenti al progetto che, per motivi di tempo, non stati implementati ma che lo potrebbero essere in versioni future del componente.
 
