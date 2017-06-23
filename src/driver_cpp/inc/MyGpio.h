@@ -34,15 +34,6 @@
 
 class MyGpio {
 public:
-	/**
-	* @brief Costruttore. Inizializza l'ogetto MyGpio.
-	*
-	* @param base_address è il puntatore all'indirizzo base della periferica.
-	* @param interrupt_support è una costante che specifica se la periferica supporta le interruzioni.
-	*   Se il valore è INT_ENABLED le interruzioni sono supportate dalla periferica, se il valore
-	*   è INT_DISABLED le interruzioni non sono supportate dalla periferica.
-	*
-	*/
 	MyGpio(uint32_t* base_address, interrupt interrupt_support);
 
   /**

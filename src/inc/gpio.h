@@ -48,7 +48,7 @@
 /***************************** Include Files ********************************/
 #include <assert.h>
 #include <inttypes.h>
-#include "xstatus.h"
+#include <stddef.h>
 #include "gpio_ll.h"
 #include "gpio_defs.h"
 
@@ -84,7 +84,7 @@ typedef struct {
 /**
  * @name Funzioni di inizializazzione
  */
-int myGpio_init(myGpio_t* instance_ptr, myGpio_config *config_ptr);
+void myGpio_init(myGpio_t* instance_ptr, myGpio_config *config_ptr);
 
 /**
  * @name Funzioni di configurazione

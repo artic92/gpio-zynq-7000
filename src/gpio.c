@@ -33,13 +33,11 @@
 *   GPIO con un dispositivo specifico. La popolazione della struttura è demandata
 *   all'utilizzatore.
 *
-* @return
-* 		- XST_SUCCESS se l'inizializazzione è andata a buon fine.
-*     - XST_FAILURE se l'inizializazzione non è andata a buon fine.
+* @return	None.
+*
 */
-int myGpio_init(myGpio_t* instance_ptr, myGpio_config* config_ptr)
+void myGpio_init(myGpio_t* instance_ptr, myGpio_config* config_ptr)
 {
-  int status = XST_FAILURE;
   instance_ptr->isReady = COMPONENT_NOT_READY;
 
   // Verifica che il puntatore alla struttura dati non sia nullo
@@ -52,8 +50,6 @@ int myGpio_init(myGpio_t* instance_ptr, myGpio_config* config_ptr)
 
   // Indica che l'istanza è pronta per l'uso, inizializzata senza errori
   instance_ptr->isReady = COMPONENT_READY;
-  status = XST_SUCCESS;
-  return status;
 }
 
 /**
