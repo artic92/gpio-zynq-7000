@@ -82,7 +82,7 @@ end DataFlow;
 \end{lstlisting}
 
 Il segnale di abilitazione \textit{pad\_en} regola la direzione del dato in scrittura, se alto consente la scrittura del dato verso l'esterno, se invece il segnale è basso il componente lavora in sola lettura, dato che la porta \textit{tri-state} è in alta impedenza e l'assegnazione di \textit{pad\_in} è l'unica ad essere abilitata (in realtà è sempre abilitata anche quando il componente lavora in modalità di scrittura).
-\clearpage
+
 \subsection*{Interruzioni}
 La logica di generazione delle interruzioni è stata descritta in dominio \textit{data flow} per avere un maggior controllo sugli elementi costituenti la circuiteria in modo da garantire efficienza ma anche per garantire un controllo a grana fine delle interruzioni, che si spingesse fino al singolo pin.
 
@@ -97,6 +97,7 @@ Sostanzialmente il circuito fa uso di un \textit{latch} per mantenere l'informaz
 L'ingresso di \textit{clear} del circuito, che consente di effettuare l'acknowledge dell'interruzione sul pin, è collegato direttamente al segnale di reset asincrono del \textit{latch}, di tipo 1-attivo.\\
 Il segnale di IRQ verso il gestore delle interruzioni verrà asserito solo se l'interruzione per quel pin non è stata mascherata attraverso il segnale di \textit{enable}, il quale è messo in \textit{AND} con l'uscita dato del latch. Una porta \textit{OR} può essere messa in uscita alla \textit{AND} nel caso il parallelismo del circuito, quindi il numero di fonti interrompenti, sia maggiore di uno. In tal caso infatti, basterebbe almeno una linea alta di interruzione per generare il segnale IRQ, a meno che le interruzioni per quel pin non risultino mascherate.\\
 La logica di rilevamento del fronte del segnale proveniente dalla fonte interrompente è demandato al componente \textit{livelli2impulsi} che non è altro che un piccolo automa a due stati che genera un segnale impulsivo a partire da un segnale a livelli. Questo componente è necessario per consentire al \textit{latch} la memorizzazione dell'informazione riguardante l'avvento di interruzione solo nell'istante in cui si verifica l'evento ed evitare quindi che il \textit{latch} permanga in trasparenza anche quando non sia necessario.
+\clearpage
 \section*{Driver}
 Il driver \textit{standalone} per il dispositivo è costituito da due livelli. Un primo livello, \textit{gpio\_ll}, che fornisce solo funzioni di base per l'accesso diretto ai registri ed un secondo livello, che racchiude il primo e lo arricchisce fornendo ulteriori servizi per il controllo delle interruzioni.
 
@@ -119,6 +120,7 @@ Un'ulteriore versione del driver è stata sviluppata come modulo del kernel. Que
 Uno degli obiettivi prefissati per lo sviluppo di questo driver è stato quello della \textbf{generalità}: il driver è stato scritto tenendo in mente la necessità di gestire tutte le operazioni possibili sul dispositivo, ovvero operazioni di lettura e di scrittura. 
 Altro vincolo fondamentale è stato quello di voler gestire contemporaneamente più dispositivi (funzionanti anche in diverse modalità, ovvero lettura e/o scrittura) e quindi trattare tutti quei problemi di concorrenza che ne sono associati.
 La spiegazione nel dettaglio del funzionamento di quest'ultima versione esula dagli scopi di questo documento, pertanto si rimanda al codice sorgente, accuratamente commentato, per approfondimenti riguardanti il significato delle singole istruzioni.
+\clearpage
 \section*{Sviluppi futuri}
 Questa sezione è stata scritta con l'intento di illustrare possibili miglioramenti al progetto che, per motivi di tempo, non stati implementati ma che lo potrebbero essere in versioni future del componente.
 
