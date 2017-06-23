@@ -33,8 +33,8 @@
 *
 */
 
-#include "xscugic.h"
 #include "gpio.h"
+#include "xscugic.h"
 #include "config.h"
 
 XScuGic gic_inst;
