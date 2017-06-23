@@ -47,7 +47,7 @@ int myGpio_init(myGpio_t* instance_ptr, myGpio_config* config_ptr)
   assert(config_ptr != NULL);
 
   // Popola la struttura dati del device con i dati forniti
-  instance_ptr->base_address = (uint32_t*)config_ptr->base_address;
+  instance_ptr->base_address = config_ptr->base_address;
   instance_ptr->interrupt_support = config_ptr->interrupt_config;
 
   // Indica che l'istanza è pronta per l'uso, inizializzata senza errori

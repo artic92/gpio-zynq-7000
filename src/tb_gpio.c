@@ -16,15 +16,16 @@
 #include "gpio.h"
 #include "config.h"
 
-myGpio_t gpio_led;
-myGpio_t gpio_switch;
-
 /**
 * @brief Esegue un test di funzionamento accendendo e spegnendo i led in base
-* allo stato degli switch.
+* allo stato degli switch e dei pulsanti.
 */
 void tb_gpio(void)
 {
+  myGpio_t gpio_led;
+  myGpio_t gpio_switch;
+  myGpio_t gpio_btn;
+
   myGpio_config gpio_config;
   gpio_config.base_address = (uint32_t*)GPIO_LED_BASEADDR;
   gpio_config.interrupt_config = INT_DISABLED;
@@ -33,9 +34,15 @@ void tb_gpio(void)
   gpio_config.base_address = (uint32_t*)GPIO_SWITCH_BASEADDR;
   myGpio_init(&gpio_switch, &gpio_config);
 
+  gpio_config.base_address = (uint32_t*)GPIO_BUTTON_BASEADDR;
+  myGpio_init(&gpio_btn, &gpio_config);
+
   myGpio_setDataDirection(&gpio_led, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, GPIO_WRITE);
   myGpio_setDataDirection(&gpio_switch, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, GPIO_READ);
+  myGpio_setDataDirection(&gpio_btn, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, GPIO_READ);
 
-  for(;;)
+  for(;;){
     myGpio_write_value(&gpio_led, myGpio_read_value(&gpio_switch));
+    myGpio_write_value(&gpio_led, myGpio_read_value(&gpio_btn));
+  }
 }
