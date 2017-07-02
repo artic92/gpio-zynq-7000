@@ -41,7 +41,9 @@
 #include <string.h>
 #include <sys/mman.h>
 
-#include "gpio_ll.h"
+#include "bsp_led.h"
+#include "bsp_switch.h"
+#include "bsp_button.h"
 
 #define DEBUG
 #define GPIO_MAP_SIZE 0x10000
@@ -144,11 +146,13 @@ void setup(void)
 	printf("[DEBUG] Configurazione dei device hardware...\n");
 	#endif
 
-	// Le GPIO dei LED sono configurate in scrittura
-	*((unsigned *)(led_base_addr + GPIO_TRI_OFFSET)) = 0x000F;
+	// Configurazione dei LED
+	led_init((uint32_t*)led_base_addr);
+	led_enable(LED0 | LED1 | LED2 | LED3);
 
-	// Le GPIO degli switch/pulsanti sono configurate in lettura
-	*((unsigned *)(swt_base_addr + GPIO_TRI_OFFSET)) = 0x0000;
+	// Configurazione degli switch/pulsanti
+	switch_init((uint32_t*)swt_base_addr, INT_DISABLED);
+	switch_enable(SWT0 | SWT1 | SWT2 | SWT3);
 
 	#ifdef DEBUG
 	printf("[DEBUG] Configurazione completata!\n");
@@ -164,13 +168,13 @@ void loop(void)
 	unsigned swt_status = 0;
 
 	// Lettura dello stato degli switch
-	swt_status = *((unsigned *)(swt_base_addr + GPIO_DIN_OFFSET));
+	swt_status = switch_get_state(SWT0 | SWT1 | SWT2 | SWT3);
 
 	#ifdef DEBUG
 	printf("[DEBUG] Stato degli switch %08x\n", swt_status);
 	#endif
 
 	// Propagazione dello stato degli switch/pulsanti sui LED
-	*((unsigned *)(led_base_addr + GPIO_DOUT_OFFSET)) = swt_status;
+	led_on(swt_status);
 }
 /** @} */

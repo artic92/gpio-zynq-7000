@@ -36,7 +36,9 @@
 #include <string.h>
 #include <sys/mman.h>
 
-#include "gpio_ll.h"
+#include "bsp_led.h"
+#include "bsp_switch.h"
+#include "bsp_button.h"
 
 #define DEBUG
 #define GPIO_MAP_SIZE 0x10000
@@ -142,13 +144,13 @@ void setup(void)
 	printf("[DEBUG] Configurazione dei device hardware...\n");
 	#endif
 
-	// Le GPIO dei LED sono configurate in scrittura
-	*((unsigned *)(led_base_addr + GPIO_TRI_OFFSET)) = 0x000F;
+	// Configurazione dei LED
+	led_init((uint32_t*)led_base_addr);
+	led_enable(LED0 | LED1 | LED2 | LED3);
 
-	// Le GPIO degli switch/pulsanti sono configurate in lettura
-	*((unsigned *)(swt_base_addr + GPIO_TRI_OFFSET)) = 0x0000;
-	// Abilitazione del meccanismo delle interruzioni per gli switch/pulsanti
-	*((unsigned *)(swt_base_addr + GPIO_IER_OFFSET)) = 0x000F;
+	// Configurazione degli switch/pulsanti
+	switch_init((uint32_t*)swt_base_addr, INT_ENABLED);
+	switch_enable(SWT0 | SWT1 | SWT2 | SWT3);
 
 	#ifdef DEBUG
 	printf("[DEBUG] Configurazione completata!\n");
@@ -178,7 +180,7 @@ void loop(void)
 	}
 
 	// Lettura del dato dalla periferica
-	swt_status = *((unsigned *)(swt_base_addr + GPIO_DIN_OFFSET));
+	swt_status = switch_get_state(SWT0 | SWT1 | SWT2 | SWT3);
 
 	// L'istruzione di write è necessaria per notificare il processo UIO dell'operazione
 	// di scrittura. In seguito a tale chiamata infatti il processo replicherà
@@ -203,6 +205,6 @@ void loop(void)
 	#endif
 
 	// Propagazione dello stato degli switch/pulsanti sui LED
-	*((unsigned *)(led_base_addr + GPIO_DOUT_OFFSET)) = led_data;
+	led_on(led_data);
 }
 /** @} */

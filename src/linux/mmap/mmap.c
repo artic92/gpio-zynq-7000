@@ -150,7 +150,7 @@ void setup(void)
 	led_enable(LED0 | LED1 | LED2 | LED3);
 
 	// Configurazione degli switch/pulsanti
-	switch_init((uint32_t*) swt_base_addr, INT_DISABLED);
+	switch_init((uint32_t*)swt_base_addr, INT_DISABLED);
 	switch_enable(SWT0 | SWT1 | SWT2 | SWT3);
 
 	#ifdef DEBUG
