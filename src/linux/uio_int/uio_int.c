@@ -103,7 +103,7 @@ void setup(void)
 	if (fd_led < 1) {
 		printf("Apertura device file (%s) non riuscita! Errore: %s\n", uiod_l, strerror(errno));
 		printf("Utilizzo del driver: ./uio input_device_path output_device_path.\n Es: ./uio /dev/uio0 /dev/uio1\n");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	// Apre il device file relativo agli switch/pulsanti
@@ -112,7 +112,7 @@ void setup(void)
 		printf("Apertura device file (%s) non riuscita! Errore: %s\n", uiod_s, strerror(errno));
 		printf("Utilizzo del driver: ./uio input_device_path output_device_path.\nEs: ./uio /dev/uio0 /dev/uio1\n");
 		close(fd_led);
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	#ifdef DEBUG
@@ -128,7 +128,7 @@ void setup(void)
 		printf("Mapping degli indirizzi per il descrittore %s non riuscito. Errore: %s\n", uiod_l, strerror(errno));
 		close(fd_led);
 		close(fd_swt);
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	swt_base_addr = mmap(NULL, GPIO_MAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd_swt, 0);
@@ -137,7 +137,7 @@ void setup(void)
 		munmap(led_base_addr, GPIO_MAP_SIZE);
 		close(fd_led);
 		close(fd_swt);
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	#ifdef DEBUG
@@ -146,11 +146,11 @@ void setup(void)
 
 	// Configurazione dei LED
 	led_init((uint32_t*)led_base_addr);
-	led_enable(LED0 | LED1 | LED2 | LED3);
+	led_enable(LED0|LED1|LED2|LED3);
 
 	// Configurazione degli switch/pulsanti
 	switch_init((uint32_t*)swt_base_addr, INT_ENABLED);
-	switch_enable(SWT0 | SWT1 | SWT2 | SWT3);
+	switch_enable(SWT0|SWT1|SWT2|SWT3);
 
 	#ifdef DEBUG
 	printf("[DEBUG] Configurazione completata!\n");
@@ -176,11 +176,11 @@ void loop(void)
 		munmap(swt_base_addr, GPIO_MAP_SIZE);
 		close(fd_led);
 		close(fd_swt);
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	// Lettura del dato dalla periferica
-	swt_status = switch_get_state(SWT0 | SWT1 | SWT2 | SWT3);
+	swt_status = switch_get_state(SWT0|SWT1|SWT2|SWT3);
 
 	// L'istruzione di write è necessaria per notificare il processo UIO dell'operazione
 	// di scrittura. In seguito a tale chiamata infatti il processo replicherà

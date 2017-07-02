@@ -109,7 +109,7 @@ void setup(void)
 	if (fd_mem < 1) {
 		printf("Apertura device file (/dev/mem) non riuscita! Errore: %s\n", strerror(errno));
 		printf("Utilizzo del driver: ./mmap input_source. Es: ./mmap s oppure ./mmap b\n");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	// Calcolo dell'indirizzo della pagina fisica nella quale si trova la periferica
@@ -131,14 +131,14 @@ void setup(void)
 	if(led_base_addr == MAP_FAILED){
 		printf("Mapping degli indirizzi per i LED non riuscito. Errore: %s\n", strerror(errno));
 		close(fd_mem);
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	swt_base_addr = mmap(NULL, page_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd_mem, page_addr_swt);
 	if(led_base_addr == MAP_FAILED){
 		printf("Mapping degli indirizzi per gli switch/pulsanti non riuscito. Errore: %s\n", strerror(errno));
 		close(fd_mem);
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	#ifdef DEBUG
@@ -147,11 +147,11 @@ void setup(void)
 
 	// Configurazione dei LED
 	led_init((uint32_t*)led_base_addr);
-	led_enable(LED0 | LED1 | LED2 | LED3);
+	led_enable(LED0|LED1|LED2|LED3);
 
 	// Configurazione degli switch/pulsanti
 	switch_init((uint32_t*)swt_base_addr, INT_DISABLED);
-	switch_enable(SWT0 | SWT1 | SWT2 | SWT3);
+	switch_enable(SWT0|SWT1|SWT2|SWT3);
 
 	#ifdef DEBUG
 	printf("[DEBUG] Configurazione completata!\n");
@@ -166,7 +166,7 @@ void loop(void)
 	unsigned swt_status = 0;
 
 	// Lettura dello stato degli switch
-	swt_status = switch_get_state(SWT0 | SWT1 | SWT2 | SWT3);
+	swt_status = switch_get_state(SWT0|SWT1|SWT2|SWT3);
 
 	#ifdef DEBUG
 	printf("[DEBUG] Stato degli switch %08x\n", swt_status);
