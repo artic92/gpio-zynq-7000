@@ -44,6 +44,11 @@ void switch_init(uint32_t* base_address, interrupt int_config)
   gpio_config.interrupt_config = int_config;
 
   myGpio_init(&gpio_switch, &gpio_config);
+
+  if(int_config == INT_ENABLED){
+    myGpio_interruptEnable(&gpio_switch, SWT0 | SWT1 | SWT2 | SWT3);
+    myGpio_interruptClear(&gpio_switch, SWT0 | SWT1 | SWT2 | SWT3);
+  }
 }
 
 /**
@@ -68,5 +73,16 @@ void switch_enable(uint32_t swts_to_enable)
 uint32_t switch_get_state(uint32_t mask)
 {
   return myGpio_read_value(&gpio_switch) & mask;
+}
+
+/**
+ * @brief Effettua l'acknowledge delle interruzioni pendenti.
+ *
+ * @return none.
+ */
+void switch_int_ack(void)
+{
+  	uint32_t pending_int = myGpio_interruptGetStatus(&gpio_switch);
+    myGpio_interruptClear(&gpio_switch, pending_int);
 }
 /** @} */

@@ -70,5 +70,12 @@ void switch_enable(uint32_t swts_to_enable);
 uint32_t switch_get_state(uint32_t mask);
 /** @} */
 
+/**
+ * @name Funzioni per la gestione delle interruzioni
+ * @{
+ */
+void switch_int_ack(void);
+/** @} */
+
 #endif /* SRC_BSP_SWT_H_ */
 /** @} */
