@@ -52,7 +52,7 @@ typedef enum
  * @name Funzioni di inizializazzione
  * @{
  */
-void switch_init(interrupt_support int_config);
+void switch_init(interrupt int_config);
 /** @} */
 
 /**

@@ -35,11 +35,11 @@ myGpio_t gpio_switch;
  *
  * @return none.
  */
-void switch_init(interrupt_support int_config)
+void switch_init(interrupt int_config)
 {
   myGpio_config gpio_config;
-  gpio_config.base_address = GPIO_SWITCH_BASEADDR;
-  gpio_config.interrupt_support = int_config;
+  gpio_config.base_address = (uint32_t*)GPIO_SWITCH_BASEADDR;
+  gpio_config.interrupt_config = int_config;
 
   myGpio_init(&gpio_switch, &gpio_config);
 }

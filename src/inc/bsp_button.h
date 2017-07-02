@@ -41,7 +41,7 @@
  * @name Funzioni di inizializazzione
  * @{
  */
-void button_init(interrupt_support int_config);
+void button_init(interrupt int_config);
 /** @} */
 
 /**

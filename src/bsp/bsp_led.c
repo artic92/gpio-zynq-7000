@@ -30,8 +30,8 @@ myGpio_t gpio_led;
 void led_init(void)
 {
   myGpio_config gpio_config;
-  gpio_config->base_address = GPIO_LED_BASEADDR;
-  gpio_config->interrupt_support = INT_DISABLED;
+  gpio_config.base_address = (uint32_t*)GPIO_LED_BASEADDR;
+  gpio_config.interrupt_config = INT_DISABLED;
 
   myGpio_init(&gpio_led, &gpio_config);
 }
@@ -46,7 +46,7 @@ void led_init(void)
 void led_enable(uint32_t leds_to_enable)
 {
   myGpio_setDataDirection(&gpio_led, leds_to_enable, GPIO_WRITE);
-  myGpio_write_value(&gpio_led, leds_to_enable, 0x00000000);
+  myGpio_write_value(&gpio_led, leds_to_enable);
 }
 
 /**
@@ -101,7 +101,7 @@ void led_off(uint32_t off_leds)
  */
 void led_toggle(uint32_t toggle_leds)
 {
-  myGpio_toggle(&gpio_led, toggle_leds);
+  myGpio_toggle(&gpio_led, GPIO_DOUT_OFFSET, toggle_leds);
 }
 
 /** @} */
