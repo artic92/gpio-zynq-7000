@@ -23,6 +23,7 @@
 
 /***************************** Include Files *********************************/
 #include <inttypes.h>
+#include <stddef.h>
 #include "config.h"
 #include "gpio.h"
 
@@ -52,7 +53,7 @@ typedef enum
  * @name Funzioni di inizializazzione
  * @{
  */
-void switch_init(interrupt int_config);
+void switch_init(uint32_t* base_address, interrupt int_config);
 /** @} */
 
 /**

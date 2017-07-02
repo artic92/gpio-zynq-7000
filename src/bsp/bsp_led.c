@@ -25,12 +25,15 @@ myGpio_t gpio_led;
 /**
  * @brief Inizializza l'hardware di supporto.
  *
+ * @param base_address è l'indirizzo base della periferica. Se specificato come
+ *    NULL viene utilizzato l'indirizzo di default.
+ *
  * @return none.
  */
-void led_init(void)
+void led_init(uint32_t* base_address)
 {
   myGpio_config gpio_config;
-  gpio_config.base_address = (uint32_t*)GPIO_LED_BASEADDR;
+  gpio_config.base_address = (base_address == NULL ? (uint32_t*)GPIO_LED_BASEADDR : base_address);
   gpio_config.interrupt_config = INT_DISABLED;
 
   myGpio_init(&gpio_led, &gpio_config);

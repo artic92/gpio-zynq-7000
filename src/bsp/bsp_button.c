@@ -25,6 +25,8 @@ myGpio_t gpio_button;
 /**
  * @brief Inizializza l'hardware di supporto.
  *
+ * @param base_address è l'indirizzo base della periferica. Se specificato come
+ *    NULL viene utilizzato l'indirizzo di default.
  * @param int_config è una costante che configura il supporto alle interruzioni.
  *    Se impostata come INT_ENABLED abilita le interruzioni, se impostata a
  *    INT_DISABLED il supporto alle interruzioni è disabilitato.
@@ -35,10 +37,10 @@ myGpio_t gpio_button;
  *
  * @return none.
  */
-void button_init(interrupt int_config)
+void button_init(uint32_t* base_address, interrupt int_config)
 {
   myGpio_config gpio_config;
-  gpio_config.base_address = (uint32_t*)GPIO_BUTTON_BASEADDR;
+  gpio_config.base_address = (base_address == NULL ? (uint32_t*)GPIO_BUTTON_BASEADDR : base_address);
   gpio_config.interrupt_config = int_config;
 
   myGpio_init(&gpio_button, &gpio_config);

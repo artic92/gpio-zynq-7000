@@ -28,6 +28,7 @@
 
 /***************************** Include Files *********************************/
 #include <inttypes.h>
+#include <stddef.h>
 #include "config.h"
 #include "gpio.h"
 
@@ -46,7 +47,7 @@
  * @name Funzioni di inizializazzione
  * @{
  */
-void led_init(void);
+void led_init(uint32_t* base_address);
 /** @} */
 
 /**
