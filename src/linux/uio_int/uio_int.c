@@ -194,7 +194,7 @@ void loop(void)
 
 	// Acknoledge delle interruzioni. Scrittura redirezionata al device
 	// file di UIO, il quale la replicherà solo dopo aver chiamato la funzione write
-	*((unsigned *)(swt_base_addr + GPIO_ICL_OFFSET)) = *((unsigned *)(swt_base_addr + GPIO_ISR_OFFSET));
+	switch_int_ack();
 
 	// Incrementa la variabile di conteggio in base allo stato degli switch/pulsanti
 	led_data = led_data + swt_status;
