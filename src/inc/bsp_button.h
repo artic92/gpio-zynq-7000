@@ -59,5 +59,12 @@ void button_enable(uint32_t btns_to_enable);
 uint32_t button_get_state(uint32_t mask);
 /** @} */
 
+/**
+ * @name Funzioni per la gestione delle interruzioni
+ * @{
+ */
+void button_int_ack(void);
+/** @} */
+
 #endif /* SRC_BSP_BTN_H_ */
 /** @} */

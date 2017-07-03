@@ -44,6 +44,11 @@ void button_init(uint32_t* base_address, interrupt int_config)
   gpio_config.interrupt_config = int_config;
 
   myGpio_init(&gpio_button, &gpio_config);
+
+  if(int_config == INT_ENABLED){
+    myGpio_interruptEnable(&gpio_button, BTN0|BTN1|BTN2|BTN3);
+    myGpio_interruptClear(&gpio_button, BTN0|BTN1|BTN2|BTN3);
+  }
 }
 
 /**
@@ -68,5 +73,16 @@ void button_enable(uint32_t btns_to_enable)
 uint32_t button_get_state(uint32_t mask)
 {
   return myGpio_read_value(&gpio_button) & mask;
+}
+
+/**
+ * @brief Effettua l'acknowledge delle interruzioni pendenti.
+ *
+ * @return none.
+ */
+void button_int_ack(void)
+{
+  	uint32_t pending_int = myGpio_interruptGetStatus(&gpio_button);
+    myGpio_interruptClear(&gpio_button, pending_int);
 }
 /** @} */
