@@ -36,7 +36,6 @@
 #include <linux/types.h> /* size_t */
 #include <linux/proc_fs.h>
 #include <linux/fcntl.h> /* O_ACCMODE */
-//#include <asm/system.h> /* cli(), *_flags */
 #include <asm/uaccess.h> /* copy_from/to_user */
 #include <linux/device.h> /* class_creatre */
 #include <linux/cdev.h> /* cdev_init */
@@ -157,7 +156,7 @@ static int gpio_probe(struct platform_device *op)
   printk(KERN_INFO "[GPIO driver] Probing device...\n");
 
   gpio_device_ptr = kmalloc(sizeof(struct gpio_device), GFP_KERNEL);
-  if(gpio_device_ptr == NULL){
+  if(!gpio_device_ptr){
     printk(KERN_WARNING "Allocazione della memoria non riuscita!");
     return -1;
   }
@@ -182,7 +181,7 @@ static int gpio_probe(struct platform_device *op)
   gpio_device_ptr->gpiox_dev_number = MKDEV(major, ret_status);
 
   /********************* Creazione del device file ***********************************/
-  if (device_create(gpio_class, NULL, gpio_device_ptr->gpiox_dev_number, NULL, "gpio%d", ret_status) == NULL){
+  if (!device_create(gpio_class, NULL, gpio_device_ptr->gpiox_dev_number, NULL, "gpio%d", ret_status)){
     printk(KERN_INFO "Cannot create device\n");
     mutex_lock(&minor_lock);
       idr_remove(&gpio_idr, ret_status);
