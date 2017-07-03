@@ -173,6 +173,7 @@ void loop(void)
 	#endif
 
 	// Propagazione dello stato degli switch/pulsanti sui LED
+	led_off(~swt_status);
 	led_on(swt_status);
 }
 /** @} */

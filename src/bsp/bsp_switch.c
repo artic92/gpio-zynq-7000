@@ -46,8 +46,8 @@ void switch_init(uint32_t* base_address, interrupt int_config)
   myGpio_init(&gpio_switch, &gpio_config);
 
   if(int_config == INT_ENABLED){
-    myGpio_interruptEnable(&gpio_switch, SWT0 | SWT1 | SWT2 | SWT3);
-    myGpio_interruptClear(&gpio_switch, SWT0 | SWT1 | SWT2 | SWT3);
+    myGpio_interruptEnable(&gpio_switch, SWT0|SWT1|SWT2|SWT3);
+    myGpio_interruptClear(&gpio_switch, SWT0|SWT1|SWT2|SWT3);
   }
 }
 

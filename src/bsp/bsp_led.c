@@ -49,7 +49,9 @@ void led_init(uint32_t* base_address)
 void led_enable(uint32_t leds_to_enable)
 {
   myGpio_setDataDirection(&gpio_led, leds_to_enable, GPIO_WRITE);
-  myGpio_write_value(&gpio_led, leds_to_enable);
+
+  // Spegne i LED se erano già accesi
+  myGpio_write_value(&gpio_led, 0x00000000);
 }
 
 /**
@@ -67,7 +69,8 @@ void led_disable(uint32_t leds_to_disable)
 /**
  * @brief Accende i LED selezionati.
  *
- * @param on_leds è la maschera di bit indicante i LED da accendere.
+ * @param on_leds è la maschera di bit indicante i LED da accendere. I bit settati a 1
+ *    provocano l'accensione, i bit settati a 0 permettono il mantenimento dello stato precedente.
  *
  * @return none.
  *
@@ -82,7 +85,8 @@ void led_on(uint32_t on_leds)
 /**
  * @brief Spegne i LED selezionati.
  *
- * @param off_leds è la maschera di bit indicante i LED da spegnere.
+ * @param off_leds è la maschera di bit indicante i LED da spegnere. I bit settati a 1
+ *    provocano lo spegnimento, i bit settati a 0 permettono il mantenimento dello stato precedente.
  *
  * @return none.
  *
@@ -97,7 +101,8 @@ void led_off(uint32_t off_leds)
 /**
  * @brief Commuta lo stato dei LED selezionati.
  *
- * @param toggle_leds è la maschera di bit indicante i LED da commutare.
+ * @param toggle_leds è la maschera di bit indicante i LED da commutare. I bit settati a 1
+ *   fanno commutare lo stato mentre bit settati a 0 ne mantengono lo stato precedente.
  *
  * @note
  *    Questa funzione deve essere chiamata dopo aver abilitato i LED.

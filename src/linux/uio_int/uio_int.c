@@ -179,22 +179,26 @@ void loop(void)
 		exit(EXIT_FAILURE);
 	}
 
+	printf("Il dato è arrivato!\n");
 	// Lettura del dato dalla periferica
 	swt_status = switch_get_state(SWT0|SWT1|SWT2|SWT3);
+
+	// Acknoledge delle interruzioni. Scrittura redirezionata al device
+	// file di UIO, il quale la replicherà solo dopo aver chiamato la funzione write
+	switch_int_ack();
 
 	// L'istruzione di write è necessaria per notificare il processo UIO dell'operazione
 	// di scrittura. In seguito a tale chiamata infatti il processo replicherà
 	// la scrittura sulla periferica associata. Se non si chiama questa funzione
 	// non vengono applicati effetivamente le operazioni sui registri della periferica
 	if (write(fd_swt, &swt_status, sizeof(swt_status)) < sizeof(swt_status)) {
-		perror("write");
+		printf("Scrittura non riuscita. Errore: %s\n", strerror(errno));
+		munmap(led_base_addr, GPIO_MAP_SIZE);
+		munmap(swt_base_addr, GPIO_MAP_SIZE);
+		close(fd_led);
 		close(fd_swt);
 		exit(EXIT_FAILURE);
 	}
-
-	// Acknoledge delle interruzioni. Scrittura redirezionata al device
-	// file di UIO, il quale la replicherà solo dopo aver chiamato la funzione write
-	switch_int_ack();
 
 	// Incrementa la variabile di conteggio in base allo stato degli switch/pulsanti
 	led_data = led_data + swt_status;
@@ -205,6 +209,7 @@ void loop(void)
 	#endif
 
 	// Propagazione dello stato degli switch/pulsanti sui LED
+	led_off(~led_data);
 	led_on(led_data);
 }
 /** @} */
