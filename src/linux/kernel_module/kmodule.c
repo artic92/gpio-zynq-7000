@@ -295,7 +295,7 @@ static int gpio_probe(struct platform_device *op)
 /**
  * @brief Funzione di rimozione.
  *
- * @details Chiamata dal kernel quando un dispositivo non è più presnete nel sistema.
+ * @details Chiamata dal kernel quando un dispositivo non è più presente nel sistema.
  *    Dealloca tutte le strutture dati allocate in precedenza per gestire il particolare device.
  *
  * @param op struttura che contiene informazioni utili all'deallocazione del device
