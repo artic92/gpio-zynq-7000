@@ -113,11 +113,11 @@ struct gpio_device{
 };
 
 /************************** Function Prototypes *****************************/
-static int gpio_open(struct inode *, struct file *);
-static int gpio_release(struct inode *, struct file *);
+int gpio_open(struct inode *, struct file *);
+int gpio_release(struct inode *, struct file *);
 ssize_t gpio_read(struct file *, char __user *, size_t, loff_t *);
 ssize_t gpio_write(struct file *, const char __user *, size_t, loff_t *);
-static irqreturn_t gpio_isr(int irq, struct pt_regs * regs);
+irqreturn_t gpio_isr(int irq, struct pt_regs * regs);
 
 /**
  * @brief Operazioni supportate dal driver.
@@ -334,7 +334,7 @@ static int gpio_remove(struct platform_device *op)
  *    - 0 se il procedimento di apertura è andato a buon fine.
  *    - errno se il procedimento di apertura non è andato a buon fine.
  */
-static int gpio_open(struct inode *inode, struct file *filp)
+int gpio_open(struct inode *inode, struct file *filp)
 {
   struct gpio_device* gpio_dev_ptr;
 
@@ -370,7 +370,7 @@ static int gpio_open(struct inode *inode, struct file *filp)
  *    - 0 se il procedimento di release è andato a buon fine.
  *    - errno se il procedimento di release non è andato a buon fine.
  */
-static int gpio_release(struct inode *inode, struct file *filp)
+int gpio_release(struct inode *inode, struct file *filp)
 {
   printk(KERN_INFO "[GPIO driver] Rilascio device file\n");
   return 0;
@@ -487,7 +487,7 @@ ssize_t gpio_write(struct file *filp, const char __user *buf, size_t count, loff
  *    - errno se l'interruzione non è stata servita correttamente.
  *
  */
-static irqreturn_t gpio_isr(int irq, struct pt_regs * regs)
+irqreturn_t gpio_isr(int irq, struct pt_regs * regs)
 {
   uint32_t pending_interrupt;
   unsigned long* gpio_base_addr_ptr;
@@ -504,6 +504,7 @@ static irqreturn_t gpio_isr(int irq, struct pt_regs * regs)
   // Acknoledgement delle interruzioni pendenti
   pending_interrupt = ioread32(gpio_base_addr_ptr + (GPIO_ISR_OFFSET/4));
   iowrite32(pending_interrupt, gpio_base_addr_ptr + (GPIO_ICL_OFFSET/4));
+  iowrite32(0x00000000, gpio_base_addr_ptr + (GPIO_ICL_OFFSET/4));
 
   // Sblocca eventuali processi in attesa di leggere
   spin_lock_irqsave(&read_lock, flags);
