@@ -161,6 +161,7 @@ static int gpio_probe(struct platform_device *op)
     return -1;
   }
 
+  platform_set_drvdata(op, (void*)gpio_device_ptr);
   spin_lock_init(&gpio_device_ptr->write_lock);
 
   mutex_lock(&minor_lock);
@@ -306,19 +307,24 @@ static int gpio_probe(struct platform_device *op)
  */
 static int gpio_remove(struct platform_device *op)
 {
-  printk(KERN_INFO "[GPIO driver] Rimozione strutture dati per il singolo device...\n");
-    // TODO BISOGNA PASSARGLI IL PTR A GPIO_DEVICE, MA COME??
-  // iounmap(gpio_dev_t_ptr->base_addr);
-  // release_mem_region(gpio_device_ptr->res.start, resource_size(&gpio_device_ptr->res));
-  // if(gpio_device_ptr->irq != 0){
-  //   free_irq(gpio_device_ptr->irq, NULL);
-  // }
-  // device_destroy(gpio_class, gpio_device_ptr->gpiox_dev_number);
-  // mutex_lock(&minor_lock);
-  //   idr_remove(&gpio_idr, ret_status);
-  // mutex_unlock(&minor_lock);
-  // kfree(gpio_device_ptr);
-  // ANKE RDQUEUE
+  struct gpio_device *gpio_device_ptr;
+  int minor_number;
+
+  gpio_device_ptr = platform_get_drvdata(op);
+  minor_number = MINOR(gpio_device_ptr->gpiox_dev_number);
+
+  printk(KERN_INFO "[GPIO driver] Rimozione strutture dati per il device %i\n", minor_number);
+
+  iounmap(gpio_device_ptr->base_addr);
+  release_mem_region(gpio_device_ptr->res.start, resource_size(&gpio_device_ptr->res));
+  if(gpio_device_ptr->irq != 0){
+    free_irq(gpio_device_ptr->irq, NULL);
+  }
+  device_destroy(gpio_class, gpio_device_ptr->gpiox_dev_number);
+  mutex_lock(&minor_lock);
+    idr_remove(&gpio_idr, minor_number);
+  mutex_unlock(&minor_lock);
+  kfree(gpio_device_ptr);
   return 0;
 }
 
