@@ -510,7 +510,6 @@ irqreturn_t gpio_isr(int irq, struct pt_regs * regs)
   // Acknoledgement delle interruzioni pendenti
   pending_interrupt = ioread32(gpio_base_addr_ptr + (GPIO_ISR_OFFSET/4));
   iowrite32(pending_interrupt, gpio_base_addr_ptr + (GPIO_ICL_OFFSET/4));
-  iowrite32(0x00000000, gpio_base_addr_ptr + (GPIO_ICL_OFFSET/4));
 
   // Sblocca eventuali processi in attesa di leggere
   spin_lock_irqsave(&read_lock, flags);

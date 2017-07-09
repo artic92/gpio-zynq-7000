@@ -227,7 +227,6 @@ void myGpio_interruptClear(myGpio_t* instance_ptr, uint32_t mask)
   assert(instance_ptr->interrupt_support == INT_ENABLED);
 
   gpio_write_mask(instance_ptr->base_address, GPIO_ICL_OFFSET, mask);
-  gpio_write_mask(instance_ptr->base_address, GPIO_ICL_OFFSET, 0x00000000);
 }
 
 /**

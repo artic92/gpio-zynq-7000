@@ -249,10 +249,9 @@ begin
 	      slv_reg5 <= (others => '0');
 	    else
 	      loc_addr := axi_awaddr(ADDR_LSB + OPT_MEM_ADDR_BITS downto ADDR_LSB);
+				irq_clear_sig <= (others => '0');
+
 	      if (slv_reg_wren = '1') then
-
-					irq_clear_sig <= (others => '0');
-
 	        case loc_addr is
 	          when b"000" =>
 	            for byte_index in 0 to (C_S_AXI_DATA_WIDTH/8-1) loop
