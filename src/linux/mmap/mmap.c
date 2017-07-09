@@ -108,7 +108,6 @@ void setup(void)
 	fd_mem = open("/dev/mem", O_RDWR);
 	if (fd_mem < 1) {
 		printf("Apertura device file (/dev/mem) non riuscita! Errore: %s\n", strerror(errno));
-		printf("Utilizzo del driver: ./mmap input_source. Es: ./mmap s oppure ./mmap b\n");
 		exit(EXIT_FAILURE);
 	}
 

@@ -102,7 +102,7 @@ void setup(void)
 	fd_led = open(uiod_l, O_RDWR);
 	if (fd_led < 1) {
 		printf("Apertura device file (%s) non riuscita! Errore: %s\n", uiod_l, strerror(errno));
-		printf("Utilizzo del driver: ./uio input_device_path output_device_path.\n Es: ./uio /dev/uio0 /dev/uio1\n");
+		printf("Utilizzo del driver: ./uio output_device_path input_device_path.\n Es: ./uio /dev/uio0 /dev/uio1\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -110,7 +110,7 @@ void setup(void)
 	fd_swt = open(uiod_s, O_RDWR);
 	if (fd_swt < 1) {
 		printf("Apertura device file (%s) non riuscita! Errore: %s\n", uiod_s, strerror(errno));
-		printf("Utilizzo del driver: ./uio input_device_path output_device_path.\nEs: ./uio /dev/uio0 /dev/uio1\n");
+		printf("Utilizzo del driver: ./uio output_device_path input_device_path.\nEs: ./uio /dev/uio0 /dev/uio1\n");
 		close(fd_led);
 		exit(EXIT_FAILURE);
 	}

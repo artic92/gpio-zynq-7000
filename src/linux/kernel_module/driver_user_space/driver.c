@@ -100,7 +100,7 @@ void setup(void)
 	fd_led = open(dev_l, O_RDWR);
 	if (fd_led < 1) {
 		printf("Apertura device file (%s) non riuscita! Errore: %s\n", dev_l, strerror(errno));
-		printf("Utilizzo del driver: ./driver input_device_path output_device_path.\n Es: ./driver /dev/gpio0 /dev/gpio1\n");
+		printf("Utilizzo del driver: ./driver output_device_path input_device_path.\n Es: ./driver /dev/gpio0 /dev/gpio1\n");
 		exit(-1);
 	}
 
@@ -108,7 +108,7 @@ void setup(void)
 	fd_swt = open(dev_s, O_RDWR);
 	if (fd_swt < 1) {
 		printf("Apertura device file (%s) non riuscita! Errore: %s\n", dev_s, strerror(errno));
-		printf("Utilizzo del driver: ./driver input_device_path output_device_path.\n Es: ./driver /dev/gpio0 /dev/gpio1\n");
+		printf("Utilizzo del driver: ./driver output_device_path input_device_path.\n Es: ./driver /dev/gpio0 /dev/gpio1\n");
 		close(fd_led);
 		exit(-1);
 	}
