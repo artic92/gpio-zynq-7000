@@ -37,6 +37,9 @@
 #include "xscugic.h"
 #include "config.h"
 
+#define INPUT_SRC_BASEADDR	GPIO_BUTTON_BASEADDR
+#define INPUT_SRC_IRQn		BTN_IRQn
+
 XScuGic gic_inst;
 myGpio_t gpio_led;
 myGpio_t gpio_switch;
@@ -79,7 +82,7 @@ int setup()
   gpio_config.interrupt_config = INT_DISABLED;
   myGpio_init(&gpio_led, &gpio_config);
 
-  gpio_config.base_address = (uint32_t*)GPIO_SWITCH_BASEADDR;
+  gpio_config.base_address = (uint32_t*)INPUT_SRC_BASEADDR;
   gpio_config.interrupt_config = INT_ENABLED;
   myGpio_init(&gpio_switch, &gpio_config);
 
@@ -97,14 +100,14 @@ int setup()
 	Xil_ExceptionEnable();
 
   // Registrazione presso il GIC della routine di gestione dell'interruzione per la periferica GPIO
-	status = XScuGic_Connect(&gic_inst, SWT_IRQn, (Xil_InterruptHandler)gpio_IRQHandler, (void*)&gic_inst);
+	status = XScuGic_Connect(&gic_inst, INPUT_SRC_IRQn, (Xil_InterruptHandler)gpio_IRQHandler, (void*)&gic_inst);
 	if(status != XST_SUCCESS)
 		return status;
 
   // Abilitazione delle interruzioni presso la periferica e presso il GIC
 	myGpio_interruptEnable(&gpio_switch, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3);
   myGpio_interruptClear(&gpio_switch, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3);
-	XScuGic_Enable(&gic_inst, SWT_IRQn);
+	XScuGic_Enable(&gic_inst, INPUT_SRC_IRQn);
 	return XST_SUCCESS;
 }
 
