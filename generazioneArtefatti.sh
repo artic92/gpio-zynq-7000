@@ -14,11 +14,11 @@
 # 4) Creare un progetto di tipo "board support package" in Xilinx SDK, selezionando l'opzione device_tree. Il nome del progetto
 #    deve essere specificato nella variabile DTB_PRJ_NAME;
 #    NOTA: modificare il file system-top.dts sostituendo la configurazione del parametro bootargs con la seguente:
-#          bootargs = "console=ttyPS0,115200 root=/dev/mmcblk0p2 rw earlyprintk rootfstype=ext4 rootwait devtmpfs.mount=0";
+#          bootargs = "console=ttyPS0,115200 root=/dev/mmcblk0p2 rw earlyprintk rootfstype=ext4 rootwait devtmpfs.mount=0 uio_pdrv_genirq.of_id=generic-uio earlycon";
 #          ed eliminare la riga: "stdout-path = "serial0:115200n8";"
 #    NOTA2: il valore di bootargs può essere definito nella finestra di configurazione del device-tree (Board support package settings),
 #	    inserendo nel campo value:
-#	    console=ttyPS0,115200 root=/dev/mmcblk0p2 rw earlyprintk rootfstype=ext4 rootwait devtmpfs.mount=0
+#	    console=ttyPS0,115200 root=/dev/mmcblk0p2 rw earlyprintk rootfstype=ext4 rootwait devtmpfs.mount=0 uio_pdrv_genirq.of_id=generic-uio earlycon
 #
 # 5) Creare un progetto di tipo "Application project" in Xilinx SDK selezionando l'opzione Zynq FSBL e compilarlo. Il nome del progetto
 #    deve essere specificato nella variabile FSBL_PRJ_NAME;
