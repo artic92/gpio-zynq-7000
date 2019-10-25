@@ -29,17 +29,17 @@
 */
 /***************************** Include Files ********************************/
 #include <linux/init.h>
-#include <linux/kernel.h>   /* printk() */
-#include <linux/slab.h>     /* kmalloc() */
-#include <linux/fs.h> /* everything... */
-#include <linux/errno.h> /* error codes */
-#include <linux/types.h> /* size_t */
+#include <linux/kernel.h>                   /* printk() */
+#include <linux/slab.h>                     /* kmalloc() */
+#include <linux/fs.h>                       /* everything... */
+#include <linux/errno.h>                    /* error codes */
+#include <linux/types.h>                    /* size_t */
 #include <linux/proc_fs.h>
-#include <linux/fcntl.h> /* O_ACCMODE */
-#include <asm/uaccess.h> /* copy_from/to_user */
-#include <linux/device.h> /* class_creatre */
-#include <linux/cdev.h> /* cdev_init */
-#include <linux/platform_device.h> /*platform_device*/
+#include <linux/fcntl.h>                    /* O_ACCMODE */
+#include <asm/uaccess.h>                    /* copy_from/to_user */
+#include <linux/device.h>                   /* class_create */
+#include <linux/cdev.h>                     /* cdev_init */
+#include <linux/platform_device.h>          /*platform_device*/
 #include <asm/io.h>
 #include <linux/unistd.h>
 #include <linux/of_device.h>
@@ -588,7 +588,7 @@ static int __init gpio_init(void)
     return ret_status;
   }
 
-  /******************** Registrazione class structure ************************/
+  /*************** Registrazione class structure (Linux Device Model) ***************/
   // Crea una struct class associata al driver
   gpio_class = class_create(THIS_MODULE, DRIVER_NAME);
   if(!gpio_class){
