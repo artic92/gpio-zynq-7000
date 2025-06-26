@@ -15,7 +15,8 @@ entity irq_generation is
       irq_enable_in   : in  std_logic_vector (GPIO_WIDTH-1 downto 0);
       irq_clear_in    : in  std_logic_vector (GPIO_WIDTH-1 downto 0);
       irq_pending_out : out std_logic_vector (GPIO_WIDTH-1 downto 0);
-      irq_out         : out std_logic);
+      irq_out         : out std_logic
+    );
 end irq_generation;
 
 architecture behavioral of irq_generation is
