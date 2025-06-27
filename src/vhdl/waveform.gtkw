@@ -1,0 +1,55 @@
+[*]
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Thu Jun 26 13:09:21 2025
+[*]
+[dumpfile] "/home/ariccio/gpio-zynq-7000/src/vhdl/waveform.ghw"
+[dumpfile_mtime] "Thu Jun 26 13:06:17 2025"
+[dumpfile_size] 1388
+[savefile] "/home/ariccio/gpio-zynq-7000/src/vhdl/waveform.gtkw"
+[timestart] 0
+[size] 1000 600
+[pos] 3916 604
+*-26.290695 135000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.tb_irq_generation.
+[treeopen] top.tb_irq_generation.uut.
+[sst_width] 254
+[signals_width] 222
+[sst_expanded] 1
+[sst_vpaned_height] 175
+@29
+top.tb_irq_generation.tb_clock
+@28
+[color] 2
+top.tb_irq_generation.tb_reset
+@420
+top.tb_irq_generation.tb_complete
+@200
+-
+@22
+[color] 3
+#{top.tb_irq_generation.uut.irq_source_in[3:0]} top.tb_irq_generation.uut.irq_source_in[3] top.tb_irq_generation.uut.irq_source_in[2] top.tb_irq_generation.uut.irq_source_in[1] top.tb_irq_generation.uut.irq_source_in[0]
+[color] 3
+#{top.tb_irq_generation.uut.irq_source_q[3:0]} top.tb_irq_generation.uut.irq_source_q[3] top.tb_irq_generation.uut.irq_source_q[2] top.tb_irq_generation.uut.irq_source_q[1] top.tb_irq_generation.uut.irq_source_q[0]
+@200
+-
+@22
+[color] 5
+#{top.tb_irq_generation.uut.irq_enable_in[3:0]} top.tb_irq_generation.uut.irq_enable_in[3] top.tb_irq_generation.uut.irq_enable_in[2] top.tb_irq_generation.uut.irq_enable_in[1] top.tb_irq_generation.uut.irq_enable_in[0]
+[color] 5
+#{top.tb_irq_generation.uut.irq_enable_q[3:0]} top.tb_irq_generation.uut.irq_enable_q[3] top.tb_irq_generation.uut.irq_enable_q[2] top.tb_irq_generation.uut.irq_enable_q[1] top.tb_irq_generation.uut.irq_enable_q[0]
+@200
+-
+@22
+#{top.tb_irq_generation.uut.irq_clear_in[3:0]} top.tb_irq_generation.uut.irq_clear_in[3] top.tb_irq_generation.uut.irq_clear_in[2] top.tb_irq_generation.uut.irq_clear_in[1] top.tb_irq_generation.uut.irq_clear_in[0]
+#{top.tb_irq_generation.uut.irq_clear_q[3:0]} top.tb_irq_generation.uut.irq_clear_q[3] top.tb_irq_generation.uut.irq_clear_q[2] top.tb_irq_generation.uut.irq_clear_q[1] top.tb_irq_generation.uut.irq_clear_q[0]
+@200
+-
+@22
+[color] 3
+#{top.tb_irq_generation.uut.irq_pending_q[3:0]} top.tb_irq_generation.uut.irq_pending_q[3] top.tb_irq_generation.uut.irq_pending_q[2] top.tb_irq_generation.uut.irq_pending_q[1] top.tb_irq_generation.uut.irq_pending_q[0]
+@28
+[color] 3
+top.tb_irq_generation.uut.irq_out
+[pattern_trace] 1
+[pattern_trace] 0
