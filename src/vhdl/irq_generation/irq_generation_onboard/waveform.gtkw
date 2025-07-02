@@ -1,0 +1,63 @@
+[*]
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Wed Jul  2 08:14:55 2025
+[*]
+[dumpfile] "/home/ariccio/gpio-zynq-7000/src/vhdl/irq_generation/waveform.ghw"
+[dumpfile_mtime] "Wed Jul  2 08:13:09 2025"
+[dumpfile_size] 1839
+[savefile] "/home/ariccio/gpio-zynq-7000/src/vhdl/irq_generation/waveform.gtkw"
+[timestart] 222800000
+[size] 1123 1140
+[pos] 3916 604
+*-26.290695 390000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.irq_generation_onboard_tb.
+[treeopen] top.irq_generation_onboard_tb.uut.
+[treeopen] top.irq_generation_onboard_tb.uut.u_irq_gen.
+[sst_width] 254
+[signals_width] 174
+[sst_expanded] 1
+[sst_vpaned_height] 612
+@28
+top.irq_generation_onboard_tb.tb_clock
+top.irq_generation_onboard_tb.tb_reset
+@420
+top.irq_generation_onboard_tb.tb_is_complete
+@200
+-
+-enable
+@28
+top.irq_generation_onboard_tb.tb_switches[0]
+top.irq_generation_onboard_tb.uut.switch_sync_0_q
+top.irq_generation_onboard_tb.uut.switch_sync_1_q
+top.irq_generation_onboard_tb.uut.irq_enable_in[0]
+top.irq_generation_onboard_tb.uut.u_irq_gen.irq_enable_q[0]
+@200
+-
+-source
+@28
+top.irq_generation_onboard_tb.tb_buttons[0]
+top.irq_generation_onboard_tb.uut.button_sync_0_q
+top.irq_generation_onboard_tb.uut.button_sync_1_q
+@420
+top.irq_generation_onboard_tb.uut.debounce_cnt
+@28
+top.irq_generation_onboard_tb.uut.button_debounced_q
+top.irq_generation_onboard_tb.uut.irq_source_in[0]
+top.irq_generation_onboard_tb.uut.u_irq_gen.irq_source_q[0]
+@200
+-
+-clear
+@28
+top.irq_generation_onboard_tb.uut.irq_clear_in[0]
+top.irq_generation_onboard_tb.uut.u_irq_gen.irq_clear_q[0]
+@200
+-
+-pending
+@28
+top.irq_generation_onboard_tb.uut.u_irq_gen.irq_pending_q[0]
+top.irq_generation_onboard_tb.uut.leds[0]
+top.irq_generation_onboard_tb.uut.u_irq_gen.irq_out
+top.irq_generation_onboard_tb.uut.leds[3]
+[pattern_trace] 1
+[pattern_trace] 0
