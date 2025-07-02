@@ -25,6 +25,8 @@ architecture rtl of irq_generation_onboard is
   signal fsm_state           : fsm_state_type;
   signal clear_counter       : integer range 0 to 15;
 
+  signal rst_sync_0_q        : std_logic;
+  signal rst_sync_1_q        : std_logic;
   signal button_sync_0_q     : std_logic;
   signal button_sync_1_q     : std_logic;
   signal switch_sync_0_q     : std_logic;
@@ -37,10 +39,18 @@ architecture rtl of irq_generation_onboard is
 
 begin
 
+  sync_reset_proc : process (clk)
+  begin
+    if (rising_edge(clk)) then
+      rst_sync_0_q    <= rst;
+      rst_sync_1_q    <= rst_sync_0_q;
+    end if;
+  end process;
+
   sync_inputs_proc : process (clk)
   begin
     if (rising_edge(clk)) then
-      if (rst = '1') then
+      if (rst_sync_1_q = '1') then
         button_sync_0_q <= '0';
         button_sync_1_q <= '0';
         switch_sync_0_q <= '0';
@@ -57,7 +67,7 @@ begin
   debounce_btn_proc : process (clk)
   begin
     if (rising_edge(clk)) then
-      if (rst = '1') then
+      if (rst_sync_1_q = '1') then
         debounce_cnt         <= 0;
         button_debounced_q   <= '0';
       else if (button_debounced_q = button_sync_1_q) then
@@ -76,7 +86,7 @@ begin
   clear_fsm : process(clk)
   begin
     if rising_edge(clk) then
-      if rst = '1' then
+      if rst_sync_1_q = '1' then
         clear_counter <= 0;
         irq_clear_in  <= (others => '0');
         fsm_state     <= IDLE;
@@ -105,8 +115,10 @@ begin
     end if;
   end process;
 
-  irq_source_in(0) <= button_debounced_q;
-  irq_enable_in(0) <= switch_sync_1_q;
+  irq_source_in(0)          <= button_debounced_q;
+  irq_source_in(3 downto 1) <= (others => '0');
+  irq_enable_in(0)          <= switch_sync_1_q;
+  irq_enable_in(3 downto 1) <= (others => '0');
 
   u_irq_gen: entity work.irq_generation
     generic map
@@ -124,7 +136,8 @@ begin
       irq_out         => irq_out
     );
 
-  leds(0) <= irq_pending_out(0);
-  leds(3) <= irq_out;
+  leds(0)          <= irq_pending_out(0);
+  leds(2 downto 1) <= (others => '0');
+  leds(3)          <= irq_out;
 
 end architecture;

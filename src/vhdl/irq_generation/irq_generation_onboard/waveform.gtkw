@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
-[*] Wed Jul  2 08:14:55 2025
+[*] Wed Jul  2 09:07:50 2025
 [*]
-[dumpfile] "/home/ariccio/gpio-zynq-7000/src/vhdl/irq_generation/waveform.ghw"
-[dumpfile_mtime] "Wed Jul  2 08:13:09 2025"
-[dumpfile_size] 1839
-[savefile] "/home/ariccio/gpio-zynq-7000/src/vhdl/irq_generation/waveform.gtkw"
-[timestart] 222800000
+[dumpfile] "/home/ariccio/gpio-zynq-7000/src/vhdl/irq_generation/irq_generation_onboard/waveform.ghw"
+[dumpfile_mtime] "Wed Jul  2 09:07:15 2025"
+[dumpfile_size] 1882
+[savefile] "/home/ariccio/gpio-zynq-7000/src/vhdl/irq_generation/irq_generation_onboard/waveform.gtkw"
+[timestart] 0
 [size] 1123 1140
 [pos] 3916 604
-*-26.290695 390000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-26.290695 132100000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.irq_generation_onboard_tb.
 [treeopen] top.irq_generation_onboard_tb.uut.
@@ -21,6 +21,9 @@
 @28
 top.irq_generation_onboard_tb.tb_clock
 top.irq_generation_onboard_tb.tb_reset
+top.irq_generation_onboard_tb.uut.rst_sync_0_q
+@29
+top.irq_generation_onboard_tb.uut.rst_sync_1_q
 @420
 top.irq_generation_onboard_tb.tb_is_complete
 @200
