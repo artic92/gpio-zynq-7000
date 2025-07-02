@@ -50,10 +50,10 @@ begin
       if (rising_edge(clock)) then
         if (reset = '1') then
           irq_pending_q(i) <= '0';
-        elsif (irq_source_q(i) = '1') then
-          irq_pending_q(i) <= '1';
         elsif (irq_clear_q(i) = '1') then
           irq_pending_q(i) <= '0';
+        elsif (irq_source_q(i) = '1') then
+          irq_pending_q(i) <= '1';
         end if;
       end if;
     end process;
