@@ -1,0 +1,73 @@
+[*]
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Wed Jul  2 13:49:01 2025
+[*]
+[dumpfile] "/home/ariccio/gpio-zynq-7000/src/vhdl/top_entity/top_entity_onboard/waveform.ghw"
+[dumpfile_mtime] "Wed Jul  2 13:46:54 2025"
+[dumpfile_size] 2809
+[savefile] "/home/ariccio/gpio-zynq-7000/src/vhdl/top_entity/top_entity_onboard/waveform.gtkw"
+[timestart] 278300000
+[size] 1200 1873
+[pos] 3840 0
+*-27.245275 577300000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.top_entity_tb.
+[treeopen] top.top_entity_tb.uut_inst.
+[treeopen] top.top_entity_tb.uut_inst.my_gpio_inst.
+[treeopen] top.top_entity_tb.uut_inst.my_gpio_inst.tristate_array_inst.
+[sst_width] 285
+[signals_width] 214
+[sst_expanded] 1
+[sst_vpaned_height] 946
+@28
+top.top_entity_tb.tb_clock
+top.top_entity_tb.tb_reset
+top.top_entity_tb.uut_inst.rst_sync_0
+top.top_entity_tb.uut_inst.rst_sync_1
+@420
+top.top_entity_tb.tb_is_complete
+@200
+-
+-enable
+@28
+top.top_entity_tb.tb_switches[0]
+top.top_entity_tb.uut_inst.switch_sync_0
+top.top_entity_tb.uut_inst.switch_sync_1
+top.top_entity_tb.uut_inst.my_gpio_inst.data_out_en_in[0]
+@200
+-
+-source
+@28
+top.top_entity_tb.tb_buttons[0]
+top.top_entity_tb.uut_inst.button_sync_0
+top.top_entity_tb.uut_inst.button_sync_1
+@420
+top.top_entity_tb.uut_inst.debounce_counter
+@28
+top.top_entity_tb.uut_inst.debounced_button_q
+top.top_entity_tb.uut_inst.my_gpio_inst.gpio_in_sig[0]
+top.top_entity_tb.uut_inst.my_gpio_inst.irq_generation_gen.irq_generation_inst.irq_source_q[0]
+@200
+-
+@28
+top.top_entity_tb.uut_inst.my_gpio_inst.tristate_array_inst.gpio_out_q[0]
+top.top_entity_tb.tb_leds[0]
+@200
+-
+-clear
+@28
+top.top_entity_tb.uut_inst.int_clear_in_q[0]
+top.top_entity_tb.uut_inst.my_gpio_inst.irq_generation_gen.irq_generation_inst.irq_clear_q[0]
+@200
+-
+-pending
+@28
+top.top_entity_tb.uut_inst.my_gpio_inst.irq_generation_gen.irq_generation_inst.irq_pending_q[0]
+top.top_entity_tb.tb_leds[2]
+@200
+-
+@28
+top.top_entity_tb.uut_inst.my_gpio_inst.irq_generation_gen.irq_generation_inst.irq_out
+top.top_entity_tb.tb_leds[3]
+[pattern_trace] 1
+[pattern_trace] 0
