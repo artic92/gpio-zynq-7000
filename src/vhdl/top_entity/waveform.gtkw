@@ -1,0 +1,46 @@
+[*]
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Wed Jul  2 12:19:58 2025
+[*]
+[dumpfile] "/home/ariccio/gpio-zynq-7000/src/vhdl/top_entity/waveform.ghw"
+[dumpfile_mtime] "Wed Jul  2 12:19:36 2025"
+[dumpfile_size] 2405
+[savefile] "/home/ariccio/gpio-zynq-7000/src/vhdl/top_entity/waveform.gtkw"
+[timestart] 198300000
+[size] 1200 1873
+[pos] 3840 0
+*-26.532751 294800000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.my_gpio_tb.
+[treeopen] top.my_gpio_tb.uut_inst.irq_generation_gen.irq_generation_inst.
+[sst_width] 254
+[signals_width] 214
+[sst_expanded] 1
+[sst_vpaned_height] 772
+@28
+top.my_gpio_tb.tb_clock
+top.my_gpio_tb.tb_reset
+@420
+top.my_gpio_tb.tb_is_complete
+@200
+-
+@22
+#{top.my_gpio_tb.tb_data_in[3:0]} top.my_gpio_tb.tb_data_in[3] top.my_gpio_tb.tb_data_in[2] top.my_gpio_tb.tb_data_in[1] top.my_gpio_tb.tb_data_in[0]
+#{top.my_gpio_tb.tb_data_out_en_in[3:0]} top.my_gpio_tb.tb_data_out_en_in[3] top.my_gpio_tb.tb_data_out_en_in[2] top.my_gpio_tb.tb_data_out_en_in[1] top.my_gpio_tb.tb_data_out_en_in[0]
+@200
+-
+@22
+#{top.my_gpio_tb.tb_int_enable_in[3:0]} top.my_gpio_tb.tb_int_enable_in[3] top.my_gpio_tb.tb_int_enable_in[2] top.my_gpio_tb.tb_int_enable_in[1] top.my_gpio_tb.tb_int_enable_in[0]
+@200
+-
+@22
+#{top.my_gpio_tb.tb_gpio_pin_inout[3:0]} top.my_gpio_tb.tb_gpio_pin_inout[3] top.my_gpio_tb.tb_gpio_pin_inout[2] top.my_gpio_tb.tb_gpio_pin_inout[1] top.my_gpio_tb.tb_gpio_pin_inout[0]
+#{top.my_gpio_tb.tb_data_out[3:0]} top.my_gpio_tb.tb_data_out[3] top.my_gpio_tb.tb_data_out[2] top.my_gpio_tb.tb_data_out[1] top.my_gpio_tb.tb_data_out[0]
+@200
+-
+@28
+top.my_gpio_tb.tb_irq_out
+@22
+#{top.my_gpio_tb.tb_int_pending_out[3:0]} top.my_gpio_tb.tb_int_pending_out[3] top.my_gpio_tb.tb_int_pending_out[2] top.my_gpio_tb.tb_int_pending_out[1] top.my_gpio_tb.tb_int_pending_out[0]
+[pattern_trace] 1
+[pattern_trace] 0
