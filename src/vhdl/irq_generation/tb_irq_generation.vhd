@@ -137,7 +137,7 @@ begin
             report "IRQ3 should be pending"
             severity error;
         assert uut_irq_out = '1'
-            report "IRQ should be active (IRQ3 enabled)"
+            report "IRQ should be active (IRQ3 and IRQ0 enabled)"
             severity error;
 
         uut_irq_clear_in <= "1000";
@@ -156,15 +156,42 @@ begin
         -- Trigger IRQ0
         -----------------------------------------------------------------------
         uut_irq_enable_in <= "0001";
-        uut_irq_source_in <= "0000";
+        uut_irq_source_in <= "0001";
 
-        wait for 2*TB_CLK_PERIOD;
+        wait for 3*TB_CLK_PERIOD;
 
         assert uut_irq_pending_out(0) = '1'
             report "IRQ3 should be pending"
             severity error;
         assert uut_irq_out = '1'
             report "IRQ should be active (IRQ3 enabled)"
+            severity error;
+
+        uut_irq_clear_in <= "0001";
+        wait for 2*TB_CLK_PERIOD;
+        uut_irq_clear_in <= "0000";
+        wait for TB_CLK_PERIOD;
+
+        assert uut_irq_pending_out(0) = '0'
+            report "IRQ3 should be cleared"
+            severity error;
+        assert uut_irq_out = '0'
+            report "IRQ should be cleared after IRQ3 ack"
+            severity error;
+
+        -----------------------------------------------------------------------
+        -- IRQ0 is pending but not enabled
+        -----------------------------------------------------------------------
+        uut_irq_enable_in <= "0000";
+        uut_irq_source_in <= "0001";
+
+        wait for 3*TB_CLK_PERIOD;
+
+        assert uut_irq_pending_out(0) = '1'
+            report "IRQ0 should be pending but not triggered"
+            severity error;
+        assert uut_irq_out = '0'
+            report "IRQ0 should not be active"
             severity error;
 
         wait for 10*TB_CLK_PERIOD;
