@@ -14,6 +14,13 @@ end tristate_array_onboard;
 
 architecture rtl of tristate_array_onboard is
 
+    component ila_0
+        port (
+            clk    : in std_logic;
+            probe0 : in std_logic
+        );
+    end component;
+
     component tristate_pad is
         port
         (
@@ -69,6 +76,13 @@ begin
 
     -- prevents synthesis optimisation of rst_sync_1_q logic
     leds_inout(3) <= rst_sync_1_q;
+
+    u_ila_rst : ila_0
+        port map
+        (
+            clk    => clk,
+            probe0 => rst_sync_1_q
+        );
 
     leds_tristate_array_inst : tristate_array
         generic map
