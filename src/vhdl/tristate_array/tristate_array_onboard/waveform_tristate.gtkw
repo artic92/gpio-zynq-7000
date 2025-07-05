@@ -1,0 +1,52 @@
+[*]
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Sat Jul  5 10:21:53 2025
+[*]
+[dumpfile] "/home/ariccio/gpio-zynq-7000/src/vhdl/tristate_array/tristate_array_onboard/waveform.ghw"
+[dumpfile_mtime] "Sat Jul  5 10:21:07 2025"
+[dumpfile_size] 2877
+[savefile] "/home/ariccio/gpio-zynq-7000/src/vhdl/tristate_array/tristate_array_onboard/waveform_tristate.gtkw"
+[timestart] 0
+[size] 1000 1339
+[pos] 3891 303
+*-26.659605 680000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.tristate_array_onboard_tb.
+[sst_width] 254
+[signals_width] 241
+[sst_expanded] 1
+[sst_vpaned_height] 461
+@28
+top.tristate_array_onboard_tb.tb_clk
+top.tristate_array_onboard_tb.tb_rst
+@420
+top.tristate_array_onboard_tb.tb_is_complete
+@200
+-
+-switch
+@28
+top.tristate_array_onboard_tb.tb_switch_inout
+@200
+-
+-buttons
+@800028
+#{top.tristate_array_onboard_tb.tb_buttons_inout[1:0]} top.tristate_array_onboard_tb.tb_buttons_inout[1] top.tristate_array_onboard_tb.tb_buttons_inout[0]
+@28
+top.tristate_array_onboard_tb.tb_buttons_inout[1]
+top.tristate_array_onboard_tb.tb_buttons_inout[0]
+@1001200
+-group_end
+@200
+-
+-leds
+@800022
+#{top.tristate_array_onboard_tb.tb_leds_inout[3:0]} top.tristate_array_onboard_tb.tb_leds_inout[3] top.tristate_array_onboard_tb.tb_leds_inout[2] top.tristate_array_onboard_tb.tb_leds_inout[1] top.tristate_array_onboard_tb.tb_leds_inout[0]
+@28
+top.tristate_array_onboard_tb.tb_leds_inout[3]
+top.tristate_array_onboard_tb.tb_leds_inout[2]
+top.tristate_array_onboard_tb.tb_leds_inout[1]
+top.tristate_array_onboard_tb.tb_leds_inout[0]
+@1001200
+-group_end
+[pattern_trace] 1
+[pattern_trace] 0
