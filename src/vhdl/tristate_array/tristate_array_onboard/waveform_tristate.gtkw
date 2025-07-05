@@ -1,10 +1,10 @@
 [*]
 [*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
-[*] Sat Jul  5 10:21:53 2025
+[*] Sat Jul  5 11:08:13 2025
 [*]
 [dumpfile] "/home/ariccio/gpio-zynq-7000/src/vhdl/tristate_array/tristate_array_onboard/waveform.ghw"
-[dumpfile_mtime] "Sat Jul  5 10:21:07 2025"
-[dumpfile_size] 2877
+[dumpfile_mtime] "Sat Jul  5 11:07:10 2025"
+[dumpfile_size] 2981
 [savefile] "/home/ariccio/gpio-zynq-7000/src/vhdl/tristate_array/tristate_array_onboard/waveform_tristate.gtkw"
 [timestart] 0
 [size] 1000 1339
@@ -18,7 +18,7 @@
 [sst_vpaned_height] 461
 @28
 top.tristate_array_onboard_tb.tb_clk
-top.tristate_array_onboard_tb.tb_rst
+top.tristate_array_onboard_tb.dut_inst.rst_raw
 @420
 top.tristate_array_onboard_tb.tb_is_complete
 @200
@@ -41,8 +41,14 @@ top.tristate_array_onboard_tb.tb_buttons_inout[0]
 -leds
 @800022
 #{top.tristate_array_onboard_tb.tb_leds_inout[3:0]} top.tristate_array_onboard_tb.tb_leds_inout[3] top.tristate_array_onboard_tb.tb_leds_inout[2] top.tristate_array_onboard_tb.tb_leds_inout[1] top.tristate_array_onboard_tb.tb_leds_inout[0]
+@200
+-reset
 @28
 top.tristate_array_onboard_tb.tb_leds_inout[3]
+@200
+-
+-leds connected to logic
+@28
 top.tristate_array_onboard_tb.tb_leds_inout[2]
 top.tristate_array_onboard_tb.tb_leds_inout[1]
 top.tristate_array_onboard_tb.tb_leds_inout[0]

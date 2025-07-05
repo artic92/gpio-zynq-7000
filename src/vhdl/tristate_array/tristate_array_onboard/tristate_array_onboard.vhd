@@ -5,7 +5,7 @@ entity tristate_array_onboard is
     port
     (
         clk            : in    std_logic;
-        rst            : in    std_logic;
+        rst_raw        : in    std_logic;
         buttons_inout  : inout std_logic_vector(1 downto 0);
         switch_inout   : inout std_logic;
         leds_inout     : inout std_logic_vector(3 downto 0)
@@ -62,7 +62,7 @@ begin
     rst_sync_proc : process (clk)
         begin
             if (rising_edge(clk)) then
-                rst_sync_0_q <= rst;
+                rst_sync_0_q <= rst_raw;
                 rst_sync_1_q <= rst_sync_0_q;
             end if;
         end process;
@@ -78,7 +78,7 @@ begin
         port map
         (
             clock       => clk,
-            reset       => rst,
+            reset       => rst_sync_1_q,
             gpio_out_en => "111", --write-only
             gpio_out    => leds_tristate_array_gpio_out_sig,
             gpio_in     => open,
@@ -117,7 +117,7 @@ begin
         port map
         (
             clock       => clk,
-            reset       => rst,
+            reset       => rst_sync_1_q,
             gpio_out_en => (others => '0'), --read-only
             gpio_out    => (others => '0'),
             gpio_in     => buttons_tristate_array_gpio_in_sig,

@@ -11,7 +11,7 @@ architecture tb of tristate_array_onboard_tb is
         port
         (
             clk            : in    std_logic;
-            rst            : in    std_logic;
+            rst_raw        : in    std_logic;
             buttons_inout  : inout std_logic_vector(1 downto 0);
             switch_inout   : inout std_logic;
             leds_inout     : inout std_logic_vector(3 downto 0)
@@ -20,7 +20,7 @@ architecture tb of tristate_array_onboard_tb is
 
     constant TB_CLK_PERIOD   : time      := 20 ns;
     signal   tb_clk          : std_logic := 'U';
-    signal   tb_rst          : std_logic := 'U';
+    signal   tb_rst_raw          : std_logic := 'U';
     signal   tb_is_complete  : boolean   := false;
 
     signal tb_buttons_inout  : std_logic_vector (1 downto 0) := (others => 'U');
@@ -45,7 +45,7 @@ begin
         begin
             tb_buttons_inout <= (others => '0');
             tb_switch_inout  <= '0';
-            tb_rst           <= '1';
+            tb_rst_raw           <= '1';
 
             wait for 4*TB_CLK_PERIOD;
 
@@ -55,7 +55,7 @@ begin
 
             wait for 2*TB_CLK_PERIOD;
 
-            tb_rst <= '0';
+            tb_rst_raw <= '0';
 
             wait for 2*TB_CLK_PERIOD;
 
@@ -109,7 +109,7 @@ begin
         port map
         (
             clk           => tb_clk,
-            rst           => tb_rst,
+            rst_raw       => tb_rst_raw,
             buttons_inout => tb_buttons_inout,
             switch_inout  => tb_switch_inout,
             leds_inout    => tb_leds_inout
