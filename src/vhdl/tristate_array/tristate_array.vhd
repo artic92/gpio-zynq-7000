@@ -12,7 +12,7 @@ entity tristate_array is
         reset       : in    std_logic;
         gpio_out_en : in    std_logic_vector (TRISTATE_ARRAY_WIDTH-1 downto 0);
         gpio_out    : in    std_logic_vector (TRISTATE_ARRAY_WIDTH-1 downto 0);
-        gpio_in     : out   std_logic_vector (TRISTATE_ARRAY_WIDTH-1 downto 0);
+        gpio_in     : out   std_logic_vector (TRISTATE_ARRAY_WIDTH-1 downto 0); -- synchronised with local clock
         gpio_pin    : inout std_logic_vector (TRISTATE_ARRAY_WIDTH-1 downto 0)
     );
 end tristate_array;
@@ -32,6 +32,8 @@ architecture structural of tristate_array is
     signal gpio_en_q  : std_logic_vector (TRISTATE_ARRAY_WIDTH-1 downto 0);
     signal gpio_out_q : std_logic_vector (TRISTATE_ARRAY_WIDTH-1 downto 0);
     signal gpio_in_d  : std_logic_vector (TRISTATE_ARRAY_WIDTH-1 downto 0);
+    signal gpio_in_sync_0_q  : std_logic_vector (TRISTATE_ARRAY_WIDTH-1 downto 0);
+    signal gpio_in_sync_1_q  : std_logic_vector (TRISTATE_ARRAY_WIDTH-1 downto 0);
 
 begin
 
@@ -65,17 +67,21 @@ begin
 
     end generate;
 
-    output_reg_proc : process (clock, reset)
+    output_sync_proc : process (clock, reset)
     begin
 
         if (rising_edge(clock)) then
             if (reset = '1') then
-                gpio_in <= (others => '0');
+                gpio_in_sync_0_q <= (others => '0');
+                gpio_in_sync_1_q <= (others => '0');
             else
-                gpio_in <= gpio_in_d;
+                gpio_in_sync_0_q <= gpio_in_d;
+                gpio_in_sync_1_q <= gpio_in_sync_0_q;
             end if;
         end if;
 
     end process;
+
+    gpio_in <= gpio_in_sync_1_q;
 
 end structural;

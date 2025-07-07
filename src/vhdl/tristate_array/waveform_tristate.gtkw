@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
-[*] Fri Jun 27 19:47:28 2025
+[*] Mon Jul  7 07:47:09 2025
 [*]
-[dumpfile] "/home/ariccio/gpio-zynq-7000/src/vhdl/waveform.ghw"
-[dumpfile_mtime] "Fri Jun 27 19:46:03 2025"
-[dumpfile_size] 1390
-[savefile] "/home/ariccio/gpio-zynq-7000/src/vhdl/waveform_tristate.gtkw"
-[timestart] 101200000
+[dumpfile] "/home/ariccio/gpio-zynq-7000/src/vhdl/tristate_array/waveform.ghw"
+[dumpfile_mtime] "Mon Jul  7 07:46:54 2025"
+[dumpfile_size] 1408
+[savefile] "/home/ariccio/gpio-zynq-7000/src/vhdl/tristate_array/waveform_tristate.gtkw"
+[timestart] 0
 [size] 1136 1080
-[pos] 3825 356
-*-25.290695 147700000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] 3877 345
+*-25.290695 25000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top.
 [treeopen] top.tristate_array_tb.
 [treeopen] top.tristate_array_tb.dut.
@@ -18,12 +18,11 @@
 [treeopen] top.tristate_array_tb.dut.tristate_array_gen[2].
 [treeopen] top.tristate_array_tb.dut.tristate_array_gen[3].
 [sst_width] 254
-[signals_width] 182
+[signals_width] 198
 [sst_expanded] 1
 [sst_vpaned_height] 746
-@29
-top.tristate_array_tb.tb_clock
 @28
+top.tristate_array_tb.tb_clock
 top.tristate_array_tb.tb_reset
 @420
 top.tristate_array_tb.tb_complete
@@ -43,6 +42,7 @@ top.tristate_array_tb.tb_complete
 @22
 #{top.tristate_array_tb.dut.gpio_pin[3:0]} top.tristate_array_tb.dut.gpio_pin[3] top.tristate_array_tb.dut.gpio_pin[2] top.tristate_array_tb.dut.gpio_pin[1] top.tristate_array_tb.dut.gpio_pin[0]
 #{top.tristate_array_tb.dut.gpio_in_d[3:0]} top.tristate_array_tb.dut.gpio_in_d[3] top.tristate_array_tb.dut.gpio_in_d[2] top.tristate_array_tb.dut.gpio_in_d[1] top.tristate_array_tb.dut.gpio_in_d[0]
+#{top.tristate_array_tb.dut.gpio_in[3:0]} top.tristate_array_tb.dut.gpio_in[3] top.tristate_array_tb.dut.gpio_in[2] top.tristate_array_tb.dut.gpio_in[1] top.tristate_array_tb.dut.gpio_in[0]
 #{top.tristate_array_tb.tb_gpio_in[3:0]} top.tristate_array_tb.tb_gpio_in[3] top.tristate_array_tb.tb_gpio_in[2] top.tristate_array_tb.tb_gpio_in[1] top.tristate_array_tb.tb_gpio_in[0]
 @200
 -
@@ -61,6 +61,7 @@ top.tristate_array_tb.dut.tristate_array_gen[0].gpio_inst.pad_io
 @28
 top.tristate_array_tb.dut.tristate_array_gen[1].gpio_inst.pad_out_en
 top.tristate_array_tb.dut.tristate_array_gen[1].gpio_inst.pad_out
+@29
 top.tristate_array_tb.dut.tristate_array_gen[1].gpio_inst.pad_in
 @200
 -

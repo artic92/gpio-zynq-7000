@@ -13,7 +13,8 @@ architecture sim of tristate_array_tb is
     signal   tb_reset        : std_logic  := 'U';
 
     -- DUT ports
-    constant WIDTH        : natural                            := 4;
+    constant TRISTATE_RD_LATENCY_CLK_CYCLES : time             := 3*TB_CLK_PERIOD;
+    constant WIDTH                          : natural          := 4;
     signal tb_gpio_out_en : std_logic_vector(WIDTH-1 downto 0) := (others => 'U');
     signal tb_gpio_out    : std_logic_vector(WIDTH-1 downto 0) := (others => 'U');
     signal tb_gpio_in     : std_logic_vector(WIDTH-1 downto 0) := (others => 'U');
@@ -73,11 +74,11 @@ begin
         -----------------------------------------------------------------------
         -- RESET phase
         -----------------------------------------------------------------------
-        tb_gpio_out_en <= "1111";
-        tb_gpio_out    <= "1010";
+        tb_gpio_out_en <= "1010";
+        tb_gpio_out    <= "0101";
         tb_reset       <= '1';
 
-        wait for 2*TB_CLK_PERIOD;
+        wait for TRISTATE_RD_LATENCY_CLK_CYCLES;
 
         assert (tb_gpio_in = "0000")
             report "gpio_in should be zero during reset!"
@@ -93,7 +94,8 @@ begin
         tb_gpio_pin    <= "ZZZZ";
         tb_gpio_out_en <= "1111";
         tb_gpio_out    <= "1010";
-        wait for 2*TB_CLK_PERIOD;
+
+        wait for TRISTATE_RD_LATENCY_CLK_CYCLES;
 
         assert (tb_gpio_in = "1010")
             report "tb_gpio_pin should follow ext_drive during a writing!"
@@ -107,7 +109,8 @@ begin
         tb_gpio_out_en <= "0000";
         wait for TB_CLK_PERIOD;
         tb_gpio_pin    <= "1111";
-        wait for 2*TB_CLK_PERIOD;
+
+        wait for TRISTATE_RD_LATENCY_CLK_CYCLES;
 
         assert (tb_gpio_in = "1111")
             report "gpio_in should follow the pin input!"
@@ -125,7 +128,8 @@ begin
         tb_gpio_pin(1) <= '1';
         tb_gpio_pin(2) <= '1';
         tb_gpio_out    <= "1001";
-        wait for 2*TB_CLK_PERIOD;
+
+        wait for TRISTATE_RD_LATENCY_CLK_CYCLES;
 
         assert (tb_gpio_in = "1111")
             report "gpio_in should follow ext_drive!"

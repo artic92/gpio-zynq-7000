@@ -49,14 +49,10 @@ architecture rtl of tristate_array_onboard is
 
     signal switch_tristate_pad_in_sig         : std_logic;
     signal buttons_tristate_array_gpio_in_sig : std_logic_vector(1 downto 0);
-    signal leds_tristate_array_gpio_out_sig    : std_logic_vector(2 downto 0);
+    signal leds_tristate_array_gpio_out_sig   : std_logic_vector(2 downto 0);
 
     signal rst_sync_0_q     : std_logic;
     signal rst_sync_1_q     : std_logic;
-    signal switch_sync_0_q  : std_logic;
-    signal switch_sync_1_q  : std_logic;
-    signal buttons_sync_0_q : std_logic_vector(1 downto 0);
-    signal buttons_sync_1_q : std_logic_vector(1 downto 0);
 
     type     integer_array is array (1 downto 0) of integer range 0 to 1_000_000;
     -- constant DEBOUNCE_THRESHOLD    : integer := 50_000;
@@ -108,20 +104,7 @@ begin
             pad_io     => switch_inout
         );
 
-    switch_sync_proc : process (clk)
-        begin
-            if (rising_edge(clk)) then
-                if (rst_sync_1_q = '1') then
-                    switch_sync_0_q <= '0';
-                    switch_sync_1_q <= '0';
-                else
-                    switch_sync_0_q <= switch_tristate_pad_in_sig;
-                    switch_sync_1_q <= switch_sync_0_q;
-                end if;
-            end if;
-        end process;
-
-    leds_tristate_array_gpio_out_sig(2) <= switch_sync_1_q;
+    leds_tristate_array_gpio_out_sig(2) <= switch_tristate_pad_in_sig;
 
     buttons_tristate_array_inst : tristate_array
         generic map
@@ -138,21 +121,6 @@ begin
             gpio_pin    => buttons_inout
         );
 
-    buttons_sync_gen : for i in 0 to 1 generate
-        buttons_sync_proc : process (clk)
-        begin
-            if (rising_edge(clk)) then
-                if (rst_sync_1_q = '1') then
-                    buttons_sync_0_q(i) <= '0';
-                    buttons_sync_1_q(i) <= '0';
-                else
-                    buttons_sync_0_q(i) <= buttons_tristate_array_gpio_in_sig(i);
-                    buttons_sync_1_q(i) <= buttons_sync_0_q(i);
-                end if;
-            end if;
-        end process;
-    end generate;
-
     buttons_debounce_gen : for i in 0 to 1 generate
         buttons_debounce_proc : process (clk)
         begin
@@ -160,12 +128,12 @@ begin
                 if (rst_sync_1_q = '1') then
                     debounce_cnts(i)           <= 0;
                     buttons_debounced_q(i)     <= '0';
-                elsif (buttons_sync_1_q(i) = buttons_debounced_q(i)) then
+                elsif (buttons_tristate_array_gpio_in_sig(i) = buttons_debounced_q(i)) then
                     debounce_cnts(i)           <= 0;
                 else
                     debounce_cnts(i)           <= debounce_cnts(i) + 1;
                     if (debounce_cnts(i) > DEBOUNCE_THRESHOLD) then
-                        buttons_debounced_q(i) <= buttons_sync_1_q(i);
+                        buttons_debounced_q(i) <= buttons_tristate_array_gpio_in_sig(i);
                     end if;
                 end if;
             end if;
